@@ -1,0 +1,9 @@
+module.exports = {
+  name: "help",
+  description: "List available commands",
+  execute: async (sock, msg) => {
+    const jid = msg.key.remoteJid;
+    const helpText = `*Gifted-Dave-MD Commands:*\n\n!help - Show this message\n!ping - Check bot status`;
+    await sock.sendMessage(jid, { text: helpText });
+  },
+};
