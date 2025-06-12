@@ -8,8 +8,20 @@
   },
   "author": "Gifted-Dave",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gifteddaves/Dave-Md-V1"
+  },
+  "keywords": [
+    "whatsapp-bot",
+    "baileys",
+    "gifted-dave-md",
+    "katubump",
+    "nodejs"
+  ],
   "dependencies": {
     "@whiskeysockets/baileys": "^6.6.0",
-    "ytdl-core": "^4.11.4"
+    "ytdl-core": "^4.11.4",
+    "dotenv": "^16.3.1"
   }
 }
