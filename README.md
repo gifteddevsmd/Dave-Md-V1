@@ -17,14 +17,16 @@
 ---
 
 <p align="center">
-    <img src="https://img.shields.io/github/stars/gifteddaves/gifteddavemd?color=ff69b4&logo=github&style=for-the-badge"/>
-    <img src="https://img.shields.io/github/forks/gifteddaves/gifteddavemd?color=ff1493&logo=github&style=for-the-badge"/>
-    <img src="https://img.shields.io/github/license/gifteddaves/gifteddavemd?color=purple&style=for-the-badge"/>
+    <img src="https://img.shields.io/github/stars/gifteddaves/Dave-Md-V1?color=ff69b4&logo=github&style=for-the-badge"/>
+    <img src="https://img.shields.io/github/forks/gifteddaves/Dave-Md-V1?color=ff1493&logo=github&style=for-the-badge"/>
+    <img src="https://img.shields.io/github/license/gifteddaves/Dave-Md-V1?color=purple&style=for-the-badge"/>
 </p>
 
+---
+
 <p align="center">
-  <a href="https://github.com/gifteddaves/Dave-Md-V1">
-    <img src="https://img.shields.io/badge/Click%20Here%20To-Fork%20My%20Repo-blueviolet?style=for-the-badge&logo=github"/>
+  <a href="https://github.com/gifteddaves/Dave-Md-V1/fork">
+    <img src="https://img.shields.io/badge/🔁%20CLICK%20HERE%20TO%20FORK%20MY%20REPO-ff69b4?style=for-the-badge&logo=github"/>
   </a>
 </p>
 
@@ -34,44 +36,48 @@
 
 ---
 
-## 🌟 **SESSION LINKS**
+## 🌟 **SESSION LINKS**  
 > ⚠️ These will be updated soon with our official project session sites.
 
 ### 🔷 PAIR CODE  
-> 🕐 Coming Soon  
-> 🕐 Coming Soon  
-> 🕐 Coming Soon  
+<p align="center">
+  <img src="https://img.shields.io/badge/_PAIR_CODE_1-Coming%20Soon-8A2BE2?style=for-the-badge&logo=github"/>
+  <img src="https://img.shields.io/badge/_PAIR_CODE_2-Coming%20Soon-FF69B4?style=for-the-badge&logo=github"/>
+  <img src="https://img.shields.io/badge/_PAIR_CODE_3-Coming%20Soon-E6E6FA?style=for-the-badge&logo=github"/>
+</p>
 
 ---
 
-## 🚀 **DEPLOYMENT**
-> 🛠️ Deployment platforms will be available soon. Stay tuned!
+## 🚀 **DEPLOYMENT**  
+> ⚙️ Deployment links will be added here soon.
 
-> 🕐 Coming Soon  
-> 🕐 Coming Soon  
-> 🕐 Coming Soon  
+<p align="center">
+  <img src="https://img.shields.io/badge/HEROKU-Coming%20Soon-430098?style=for-the-badge&logo=heroku&logoColor=white">
+  <img src="https://img.shields.io/badge/KOYEB-Coming%20Soon-000000?style=for-the-badge&logo=koyeb">
+  <img src="https://img.shields.io/badge/RENDER-Coming%20Soon-1f2937?style=for-the-badge&logo=render">
+</p>
 
 ---
 
 ## 🌐 **CONTACT & COMMUNITY**
 <p align="center">
   <a href="https://www.instagram.com/_gifted_dave/profilecard/?igsh=MWFjZHdmcm4zMGkzNw==" title="Instagram">
-    <img src="https://img.shields.io/badge/Instagram-_gifted_dave-E4405F?style=for-the-badge&logo=instagram&logoColor=white"/>
+    <img src="https://img.shields.io/badge/📸 Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white"/>
   </a>
   <a href="https://www.facebook.com/Davlodavlo19" title="Facebook">
-    <img src="https://img.shields.io/badge/Facebook-Davlodavlo19-1877F2?style=for-the-badge&logo=facebook&logoColor=white"/>
+    <img src="https://img.shields.io/badge/📘 Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white"/>
   </a>
   <a href="https://chat.whatsapp.com/CaPeB0sVRTrL3aG6asYeAC" title="WhatsApp Group">
-    <img src="https://img.shields.io/badge/WhatsApp-Group_Link-25D366?style=for-the-badge&logo=whatsapp&logoColor=white"/>
+    <img src="https://img.shields.io/badge/💬 WhatsApp Group-25D366?style=for-the-badge&logo=whatsapp&logoColor=white"/>
   </a>
   <a href="https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k" title="WhatsApp Channel">
-    <img src="https://img.shields.io/badge/WhatsApp-Channel_Link-128C7E?style=for-the-badge&logo=whatsapp"/>
+    <img src="https://img.shields.io/badge/📢 Channel Link-128C7E?style=for-the-badge&logo=whatsapp"/>
   </a>
   <a href="https://wa.me/254104260236" title="WhatsApp Me">
-    <img src="https://img.shields.io/badge/WhatsApp-Chat_Me-D4F5D4?style=for-the-badge&logo=whatsapp&logoColor=white"/>
+    <img src="https://img.shields.io/badge/📱 Chat Me-D4F5D4?style=for-the-badge&logo=whatsapp&logoColor=white"/>
   </a>
   <a href="https://t.me/Digladoo" title="Telegram">
-    <img src="https://img.shields.io/badge/Telegram-Digladoo-26A5E4?style=for-the-badge&logo=telegram&logoColor=white"/>
+    <img src="https://img.shields.io/badge/📬 Telegram-26A5E4?style=for-the-badge&logo=telegram&logoColor=white"/>
   </a>
 </p>
 
@@ -91,14 +97,15 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-## ✨ Short Feature Teaser
-- ✅ 300+ powerful WhatsApp features
-- 📥 Downloader, AI tools, group control, automation & more
-- 💖 Easy setup, blazing fast, and always improving
+## ✨ Quick Feature Teaser
+
+> ✅ 300+ Advanced WhatsApp Features  
+> ⚙️ Full Auto & Toggle Modes  
+> 🧠 AI + GPT Chat Support  
+> 🚀 Downloader, Anti-features, Group Control & More!
 
 ---
 
 <p align="center">
-  <b>MADE WITH LOVE</b><br/>
-  <b>😌 GIFTED ☺️ DAVE ♥️</b>
+  <b>MADE WITH LOVE<br>😌 GIFTED ☺️ DAVE ♥️</b>
 </p>
