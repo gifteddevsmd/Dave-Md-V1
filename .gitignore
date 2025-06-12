@@ -1,0 +1,33 @@
+# Node modules
+node_modules/
+
+# Log files
+*.log
+logs
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+
+# Session files
+session/
+session.json
+auth_info*
+creds.json
+QR*
+
+# OS & IDE junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build files
+dist/
+build/
+
+# Other
+*.zip
+*.rar
+*.7z
