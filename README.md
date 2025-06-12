@@ -28,25 +28,36 @@
 
 ---
 
+### 🔄 **Fork My Repo**
+<p align="center">
+  <a href="https://github.com/gifteddaves/Dave-Md-V1/fork">
+    <img src="https://img.shields.io/badge/🔁 Click%20Here%20To%20Fork%20My%20Repo-000000?style=for-the-badge&logo=github&logoColor=white"/>
+  </a>
+</p>
+
+---
+
 ## 🌟 **SESSION LINKS**
-> ⚠️ These will be updated soon with our official project session sites.
+> ⚠️ These session links are currently not available. Check back soon!
 
 ### 🔷 PAIR CODE  
-[![SESSION 1](https://img.shields.io/badge/_PAIR_CODE_1-8A2BE2?style=for-the-badge&logo=heroku)](https://prince-pair-code.koyeb.app)  
-[![SESSION 2](https://img.shields.io/badge/_PAIR_CODE_2-FF69B4?style=for-the-badge&logo=heroku)](https://prince-bot-pair-code.koyeb.app)  
-[![SESSION 3](https://img.shields.io/badge/_PAIR_CODE_3-E6E6FA?style=for-the-badge&logo=render)](https://shortsession.onrender.com)
+[![SESSION 1](https://img.shields.io/badge/_PAIR_CODE_1-8A2BE2?style=for-the-badge&logo=heroku)](#)  
+🕐 **Coming Soon**
+
+[![SESSION 2](https://img.shields.io/badge/_PAIR_CODE_2-FF69B4?style=for-the-badge&logo=heroku)](#)  
+🕐 **Coming Soon**
+
+[![SESSION 3](https://img.shields.io/badge/_PAIR_CODE_3-E6E6FA?style=for-the-badge&logo=render)](#)  
+🕐 **Coming Soon**
 
 ---
 
 ## 🚀 **DEPLOYMENT**
-<div align="center">
-  <a href="https://gd-sdeploy.vercel.app/" title="Deploy on Heroku">
-    <img src="https://img.shields.io/badge/HEROKU-430098?style=for-the-badge&logo=heroku&logoColor=white">
-  </a>
-  <a href="https://app.koyeb.com/deploy?type=git&repository=https://github.com/gifteddaves/gifteddavemd&branch=main" title="Deploy on Koyeb">
-    <img src="https://img.shields.io/badge/KOYEB-000000?style=for-the-badge&logo=koyeb">
-  </a>
-</div>
+> ⚠️ Deployment options will be available soon. Stay tuned!
+
+### 🔧 Platforms
+[![HEROKU](https://img.shields.io/badge/Heroku-Coming%20Soon-430098?style=for-the-badge&logo=heroku&logoColor=white)](#)  
+[![KOYEB](https://img.shields.io/badge/Koyeb-Coming%20Soon-000000?style=for-the-badge&logo=koyeb)](#)
 
 ---
 
@@ -87,6 +98,15 @@
 
 ---
 
+## 🧠 Short Feature Teaser
+- 🛡️ Anti-delete, anti-call, anti-ban features  
+- ⚡ Fast multi-device WhatsApp connection  
+- 🎭 Fake typing, always online, auto bio  
+- 🤖 AI chat, auto react, auto save status  
+- 🧰 300+ features – All-in-One WhatsApp Bot
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
@@ -94,5 +114,6 @@ This project is licensed under the [MIT License](LICENSE).
 ---
 
 <p align="center">
-  <b>😌 Gifted 🚀 Dave ♥️</b>
+  <strong>MADE WITH LOVE</strong><br>
+  😌 GIFTED ☺️ DAVE ♥️
 </p>
