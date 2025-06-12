@@ -4,6 +4,11 @@ const path = require('path');
 
 const { state, saveState } = useSingleFileAuthState('./session.json');
 
+// Set your bot owner's WhatsApp number here (without @s.whatsapp.net)
+const OWNER_NUMBER = process.env.OWNER_NUMBER || 'owner-number-here'; 
+// Command prefix (like '!' or '.')
+const PREFIX = process.env.PREFIX || '.';
+
 // Load plugins dynamically from /plugins folder
 const plugins = [];
 const pluginsPath = path.join(__dirname, 'plugins');
@@ -49,17 +54,29 @@ async function startBot() {
       if (message.conversation) text = message.conversation;
       else if (message.extendedTextMessage?.text) text = message.extendedTextMessage.text;
       else if (message.imageMessage?.caption) text = message.imageMessage.caption;
-      else return; // Not a supported message type for commands
+      else return; // Unsupported message type
 
-      // Extract command: first word lowercase
-      const command = text.trim().split(' ')[0].toLowerCase();
+      // Check if message starts with prefix
+      if (!text.startsWith(PREFIX)) return;
 
-      // Find matching plugin by command name
-      const plugin = plugins.find(p => p.name === command);
+      // Extract command and args
+      const args = text.slice(PREFIX.length).trim().split(/ +/);
+      const commandName = args.shift().toLowerCase();
 
-      if (plugin) {
-        await plugin.execute(sock, msg, plugins);
+      // Find matching plugin
+      const plugin = plugins.find(p => p.name === commandName);
+      if (!plugin) return;
+
+      // If plugin is owner-only, verify sender is owner
+      const sender = msg.key.participant || msg.key.remoteJid;
+      const isOwner = sender && sender.includes(OWNER_NUMBER);
+      if (plugin.ownerOnly && !isOwner) {
+        await sock.sendMessage(msg.key.remoteJid, { text: '❌ You are not authorized to use this command.' });
+        return;
       }
+
+      // Execute plugin
+      await plugin.execute(sock, msg, args);
     } catch (error) {
       console.error('Error handling message:', error);
     }
@@ -69,7 +86,7 @@ async function startBot() {
   sock.ev.on('messages.upsert', async (m) => {
     if (!m.messages) return;
     const msg = m.messages[0];
-    if (!msg.key.fromMe) { // Only respond to incoming messages, not own messages
+    if (!msg.key.fromMe) { // Only respond to incoming messages
       await handleMessage(msg);
     }
   });
