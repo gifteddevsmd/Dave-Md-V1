@@ -1,85 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gifted-Dave-MD | Pair Bot Session</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 {
-      color: #333;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      width: 80%;
-      max-width: 300px;
-      font-size: 16px;
-    }
-    .output {
-      margin-top: 20px;
-      font-weight: bold;
-      color: green;
-    }
-  </style>
-</head>
-<body>
+<html>
+  <head>
+    <title>Gifted-Dave-MD - Pair Code Session</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 50px;
+      }
 
-  <h1>🔐 Gifted-Dave-MD Pair Code</h1>
+      input, button {
+        padding: 10px;
+        margin: 10px;
+        width: 80%;
+        max-width: 300px;
+        font-size: 16px;
+      }
 
-  <input type="text" id="number" placeholder="Enter your WhatsApp Number (e.g. +2547xxxxxxx)" />
-  <br>
-  <button onclick="generateCode()">Get Pair Code</button>
+      .status {
+        margin-top: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔗 Generate Pair Code</h1>
+    <p>Enter your WhatsApp number to receive a pairing code:</p>
+    <input type="text" id="number" placeholder="e.g. +254712345678" />
+    <br />
+    <button onclick="generate()">Generate Pair Code</button>
 
-  <div id="pairCode" class="output"></div>
+    <div class="status" id="status"></div>
 
-  <br><br>
+    <script>
+      async function generate() {
+        const number = document.getElementById('number').value.trim();
+        const status = document.getElementById('status');
+        
+        if (!number.startsWith('+')) {
+          status.textContent = "❌ Please enter a valid WhatsApp number (with +254...)";
+          return;
+        }
 
-  <input type="text" id="codeInput" placeholder="Enter the Pair Code here" />
-  <br>
-  <button onclick="pairSession()">Get Session ID</button>
+        status.textContent = "⏳ Sending request...";
+        
+        try {
+          const res = await fetch("https://gifted-session-backend.vercel.app/pair", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ number }),
+          });
 
-  <div id="sessionId" class="output"></div>
+          const data = await res.json();
 
-  <script>
-    const backend = "https://gifted-session-backend.vercel.app";
-
-    async function generateCode() {
-      const number = document.getElementById("number").value.trim();
-      if (!number) return alert("Enter your WhatsApp number.");
-
-      const res = await fetch(`${backend}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number }),
-      });
-
-      const data = await res.json();
-      document.getElementById("pairCode").innerText = `🔑 Pair Code: ${data.pair_code || data.error}`;
-    }
-
-    async function pairSession() {
-      const number = document.getElementById("number").value.trim();
-      const code = document.getElementById("codeInput").value.trim();
-      if (!number || !code) return alert("Enter number and pair code.");
-
-      const res = await fetch(`${backend}/pair`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ number, code }),
-      });
-
-      const data = await res.json();
-      document.getElementById("sessionId").innerText = data.sessionId
-        ? `🪪 Session ID: ${data.sessionId}`
-        : `❌ Error: ${data.error || "Something went wrong"}`;
-    }
-  </script>
-
-</body>
-  </html>
+          if (data.pairingCode) {
+            status.innerHTML = `✅ Pair code: <b>${data.pairingCode}</b><br>Check your WhatsApp to complete pairing.`;
+          } else {
+            status.textContent = "❌ Failed to generate pair code. Please try again.";
+          }
+        } catch (err) {
+          status.textContent = "❌ Error contacting backend.";
+        }
+      }
+    </script>
+  </body>
+</html>
