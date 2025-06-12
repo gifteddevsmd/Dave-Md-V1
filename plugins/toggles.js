@@ -1,113 +1,127 @@
-const { proto } = require('@whiskeysockets/baileys');
-const db = require('../db');
+// plugins/toggle.js
+import fs from 'fs'
 
-// ====== CONFIG =======
-const OWNER_JID = '123456789@s.whatsapp.net'; // <-- Replace with your full WhatsApp JID
-const PREFIX = '.';
+const toggleableFeatures = [
+  'anticall', 'antidelete', 'antiviewonce', 'antiban', 'antilink', 'antifake', 'antibot', 'antitoxic',
+  'askgpt', 'imagine', 'chatbot', 'summarize',
+  'autoreactmessages', 'autoreactstatus', 'autoviewstatus', 'autosavestatus', 'autobio', 'autolike', 'autosavecontacts', 'autoread',
+  'faketyping', 'fakerecording', 'alwaysonline',
+  'ytmp3', 'ytmp4', 'tiktok', 'ig', 'fb', 'twitter', 'mediafire', 'song',
+  'welcome', 'goodbye', 'tagall', 'groupinfo', 'promote', 'demote', 'modtools', 'detect',
+  'translate', 'shortlink', 'calc', 'weather', 'qrcode', 'toimage', 'tovideo', 'tomp3', 'tovn',
+  'truth', 'dare', 'tictactoe', 'guessnumber', 'joke', 'meme', 'fact', 'quote', 'ship', 'dice', 'coin',
+  'profile', 'rank', 'register', 'unregister', 'mycmds', 'uptime', 'ping',
+  'broadcast', 'eval', 'exec', 'ban', 'unban', 'block', 'unblock', 'shutdown', 'restart', 'update', 'backup', 'restore'
+]
 
-const validFeatures = [
-  'autoview',
-  'antidelete',
-  'anticall',
-  'antiviewonce',
-  'antiban',
-  'faketyping',
-  'fakerecording',
-  'alwaysonline',
-  'autoreactstatus',
-  'autoreactmessages',
-  'autosavestatus',
-  'autoviewstatus',
-  'antideletestatus',
-];
+let handler = async (m, { conn, args, isAdmin, isOwner, isGroup }) => {
+  const chatId = m.chat
+  if (!db.data.toggles) db.data.toggles = {}
+  if (!db.data.toggles[chatId]) db.data.toggles[chatId] = {}
 
-async function getToggle(chatId, feature) {
-  await db.read();
-  return db.data.toggles?.[chatId]?.[feature] || false;
+  if (!args[0]) {
+    const current = db.data.toggles[chatId]
+    let msg = '🧠 *Toggleable Features in This Chat:*\n\n'
+    for (let feature of toggleableFeatures) {
+      const status = current[feature] ? '✅ ON' : '❌ OFF'
+      msg += `• *${feature}*: ${status}\n`
+    }
+    return m.reply(msg)
+  }
+
+  let feature = args[0].toLowerCase()
+  let action = args[1]?.toLowerCase()
+
+  if (!toggleableFeatures.includes(feature)) {
+    return m.reply(`❌ *Invalid feature!*\n\nAvailable:\n${toggleableFeatures.join(', ')}`)
+  }
+
+  if (isGroup && !isAdmin && !isOwner)
+    return m.reply('❌ Only *group admins* or *bot owner* can toggle features.')
+
+  if (!['on', 'off', undefined].includes(action)) {
+    return m.reply('❌ Use:\n.toggle <feature> on\n.toggle <feature> off')
+  }
+
+  if (action === 'on') {
+    db.data.toggles[chatId][feature] = true
+    return m.reply(`✅ *${feature}* turned ON.`)
+  } else if (action === 'off') {
+    db.data.toggles[chatId][feature] = false
+    return m.reply(`❌ *${feature}* turned OFF.`)
+  } else {
+    db.data.toggles[chatId][feature] = !db.data.toggles[chatId][feature]
+    let status = db.data.toggles[chatId][feature] ? 'ON' : 'OFF'
+    return m.reply(`🔁 *${feature}* toggled to ${status}.`)
+  }
 }
 
-async function setToggle(chatId, feature, value) {
-  await db.read();
-  if (!db.data.toggles[chatId]) db.data.toggles[chatId] = {};
-  db.data.toggles[chatId][feature] = value;
-  await db.write();
-}
+handler.command = /^\.?toggle$/i
+handler.group = true
+handler.private = true
+handler.category = 'settings'
+handler.description = 'Enable/disable per-chat features.'
 
-const viewOnceCache = new Map();
+export default handler
 
-module.exports = {
-  name: 'featureToggle',
-  description: 'Toggle bot features on/off per chat (owner only)',
+// ✅ Automatic logic before message
+export async function before(m, { conn }) {
+  const chatId = m.chat
+  const toggles = db.data.toggles?.[chatId] || {}
 
-  execute: async (sock, msg) => {
+  // 🛡️ Anti-delete
+  if (m.messageStubType === 0x13 && toggles.antidelete) {
     try {
-      const sender = msg.key.participant || msg.key.remoteJid;
-      const from = msg.key.remoteJid;
+      let user = m.sender
+      let originalMsg = m.msg
+      if (!originalMsg) return
+      let type = Object.keys(originalMsg.message || {})[0]
+      await conn.sendMessage(chatId, {
+        text: `🛡️ *Anti-Delete*\n@${user.split('@')[0]} deleted a ${type}:`,
+        mentions: [user]
+      })
+      m.copyNForward(chatId, originalMsg, true)
+    } catch (e) { console.error('Antidelete error:', e) }
+  }
 
-      const textRaw =
-        msg.message?.conversation ||
-        msg.message?.extendedTextMessage?.text ||
-        '';
+  // 🛡️ Anticall
+  if (m.isGroup === false && m.msg?.key?.id?.includes('call') && toggles.anticall) {
+    await conn.sendMessage(m.chat, { text: '🚫 *Calls are not allowed!* Blocking you now...' })
+    await conn.updateBlockStatus(m.chat, 'block')
+  }
 
-      if (!textRaw || !textRaw.startsWith(PREFIX)) return;
+  // 🎭 Fake typing
+  if (toggles.faketyping) {
+    await conn.sendPresenceUpdate('composing', chatId)
+  }
 
-      const commandBody = textRaw.slice(PREFIX.length).trim();
-      const [command, ...args] = commandBody.split(/\s+/);
+  // 🎭 Fake recording
+  if (toggles.fakerecording) {
+    await conn.sendPresenceUpdate('recording', chatId)
+  }
 
-      if (command !== 'toggle') return;
+  // 🎭 Always online
+  if (toggles.alwaysonline) {
+    await conn.sendPresenceUpdate('available', chatId)
+  }
 
-      // Only allow OWNER_JID to run this command
-      const isOwner = sender === OWNER_JID || from === OWNER_JID;
-      if (!isOwner) {
-        return await sock.sendMessage(from, {
-          text: '❌ You are not authorized to use this command.',
-        });
-      }
+  // 🔄 Autoreact to messages
+  if (toggles.autoreactmessages && m.text) {
+    await conn.sendMessage(chatId, { react: { text: '👍', key: m.key } })
+  }
 
-      if (args.length < 1) {
-        return await sock.sendMessage(from, {
-          text: `Please specify a feature to toggle.\nExample: ${PREFIX}toggle antidelete`,
-        });
-      }
+  // 🔄 Autoreact to status (on receiving broadcast status)
+  if (toggles.autoreactstatus && m.chat === 'status@broadcast') {
+    await conn.sendMessage(m.chat, { react: { text: '🔥', key: m.key } })
+  }
 
-      const feature = args[0].toLowerCase();
-      if (!validFeatures.includes(feature)) {
-        return await sock.sendMessage(from, {
-          text: `❌ Invalid feature.\nValid options: ${validFeatures.join(', ')}`,
-        });
-      }
+  // 🔄 Autosave status (forward statuses to chat)
+  if (toggles.autosavestatus && m.chat === 'status@broadcast') {
+    await conn.copyNForward(conn.user.id, m, true)
+  }
 
-      const chatId = from;
-      const current = await getToggle(chatId, feature);
-      await setToggle(chatId, feature, !current);
-
-      await sock.sendMessage(chatId, {
-        text: `✅ Feature *${feature}* is now *${!current ? 'ON' : 'OFF'}* in this chat.`,
-      });
-    } catch (e) {
-      console.error('Toggle error:', e);
-    }
-  },
-
-  onMessageUpsert: async (sock, m) => {
-    const msg = m.messages[0];
-    if (!msg || msg.key.fromMe) return;
-
-    const chatId = msg.key.remoteJid;
-    await db.read();
-    const toggles = db.data.toggles[chatId] || {};
-
-    // Logic for all features continues here as already provided...
-
-    // (To avoid duplication, the full onMessageUpsert logic with toggles can be reused here exactly as in the previous full version I sent)
-
-    // Example: autoreactmessages
-    if (toggles.autoreactmessages) {
-      await sock.sendMessage(chatId, {
-        react: { text: '❤️', key: msg.key },
-      });
-    }
-
-    // Continue other toggles: autoreactstatus, autosavestatus, autoviewstatus, etc...
-  },
-};
+  // 🔄 Autoview status
+  if (toggles.autoviewstatus && m.chat === 'status@broadcast') {
+    await conn.readMessages([m.key])
+  }
+  }
