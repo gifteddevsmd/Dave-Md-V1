@@ -1,13 +1,22 @@
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
+const {
+  default: makeWASocket,
+  useSingleFileAuthState,
+  DisconnectReason,
+} = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
-const db = require('./db'); // Ensure you have db.js (lowdb setup)
+const db = require('./db'); // Make sure you have db.js
 
-const { state, saveState } = useSingleFileAuthState('./session.json');
+// === Session Setup ===
+const sessionFolder = path.join(__dirname, 'session');
+if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
+const { state, saveState } = useSingleFileAuthState(path.join(sessionFolder, 'auth.json'));
 
-const OWNER_NUMBER = process.env.OWNER_NUMBER || 'owner-number-here';
+// === Bot Config ===
+const OWNER_NUMBER = process.env.OWNER_NUMBER || '254104260236@s.whatsapp.net'; // Replace with your real owner JID
 const PREFIX = process.env.PREFIX || '.';
 
+// === Load Plugins ===
 const plugins = [];
 const pluginsPath = path.join(__dirname, 'plugins');
 
@@ -18,26 +27,27 @@ fs.readdirSync(pluginsPath).forEach(file => {
   }
 });
 
+// === Start Bot ===
 async function startBot() {
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true,
+    printQRInTerminal: true, // Only shows QR on first run
   });
 
   sock.ev.on('creds.update', saveState);
 
-  sock.ev.on('connection.update', (update) => {
+  sock.ev.on('connection.update', async (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === 'close') {
-      const statusCode = lastDisconnect?.error?.output?.statusCode;
-      if (statusCode !== DisconnectReason.loggedOut) {
-        console.log('Reconnecting...');
+      const code = lastDisconnect?.error?.output?.statusCode;
+      if (code !== DisconnectReason.loggedOut) {
+        console.log('⚠️ Reconnecting...');
         startBot();
       } else {
-        console.log('Logged out from WhatsApp');
+        console.log('🚫 Logged out from WhatsApp');
       }
     } else if (connection === 'open') {
-      console.log('✅ Connected to WhatsApp');
+      console.log('✅ Connected to WhatsApp!');
     }
   });
 
@@ -63,18 +73,18 @@ async function startBot() {
       const plugin = plugins.find(p => p.name === commandName);
       if (!plugin) return;
 
-      // Check if command is owner-only
+      // Owner only?
       if (plugin.ownerOnly && !isOwner) {
-        await sock.sendMessage(chatId, { text: '❌ You are not authorized to use this command.' });
+        await sock.sendMessage(chatId, { text: '❌ You are not allowed to use this command.' });
         return;
       }
 
-      // Check feature toggle if required
+      // Check feature toggle
       if (plugin.toggleable) {
         await db.read();
         const isEnabled = db.data.toggles?.[chatId]?.[plugin.name];
         if (!isEnabled) {
-          await sock.sendMessage(chatId, { text: `🚫 *${plugin.name}* is currently OFF in this chat.` });
+          await sock.sendMessage(chatId, { text: `🚫 *${plugin.name}* is OFF in this chat.` });
           return;
         }
       }
@@ -82,7 +92,7 @@ async function startBot() {
       // Run plugin
       await plugin.execute(sock, msg, args);
     } catch (error) {
-      console.error('Error in message handler:', error);
+      console.error('❌ Error handling message:', error);
     }
   }
 
