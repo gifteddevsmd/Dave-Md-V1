@@ -1,0 +1,21 @@
+{
+  "name": "gifted-dave-md",
+  "version": "1.0.0",
+  "description": "Official WhatsApp Bot by Gifted-Dave",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ."
+  },
+  "keywords": [
+    "whatsapp-bot",
+    "gifted-dave-md",
+    "multi-device"
+  ],
+  "author": "gifteddaves",
+  "license": "MIT",
+  "dependencies": {
+    "baileys": "^6.5.0",
+    "chalk": "^5.3.0",
+    "pino": "^8.14.0"
+  }
+}
