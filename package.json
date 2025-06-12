@@ -1,27 +1,14 @@
 {
-  "name": "gifted-dave-md",
+  "name": "whatsapp-qr-bot",
   "version": "1.0.0",
-  "description": "Gifted Dave MD WhatsApp Bot",
+  "description": "Minimal WhatsApp bot with QR code using Baileys",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node index.js"
   },
-  "author": "Gifted-Dave",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/gifteddaves/Dave-Md-V1"
-  },
-  "keywords": [
-    "whatsapp-bot",
-    "baileys",
-    "gifted-dave-md",
-    "katubump",
-    "nodejs"
-  ],
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.6.0",
-    "ytdl-core": "^4.11.4",
-    "dotenv": "^16.3.1"
+    "@whiskeysockets/baileys": "^6.7.0",
+    "chalk": "^5.0.0"
   }
 }
