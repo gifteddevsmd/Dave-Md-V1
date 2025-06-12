@@ -1,15 +1,13 @@
 const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
+const db = require('./db'); // Ensure you have db.js (lowdb setup)
 
 const { state, saveState } = useSingleFileAuthState('./session.json');
 
-// Set your bot owner's WhatsApp number here (without @s.whatsapp.net)
-const OWNER_NUMBER = process.env.OWNER_NUMBER || 'owner-number-here'; 
-// Command prefix (like '!' or '.')
+const OWNER_NUMBER = process.env.OWNER_NUMBER || 'owner-number-here';
 const PREFIX = process.env.PREFIX || '.';
 
-// Load plugins dynamically from /plugins folder
 const plugins = [];
 const pluginsPath = path.join(__dirname, 'plugins');
 
@@ -39,54 +37,59 @@ async function startBot() {
         console.log('Logged out from WhatsApp');
       }
     } else if (connection === 'open') {
-      console.log('Connected to WhatsApp');
+      console.log('✅ Connected to WhatsApp');
     }
   });
 
-  // Message handler function
   async function handleMessage(msg) {
     try {
       const message = msg.message;
       if (!message) return;
 
-      // Get the text from different possible message types
       let text = '';
       if (message.conversation) text = message.conversation;
       else if (message.extendedTextMessage?.text) text = message.extendedTextMessage.text;
       else if (message.imageMessage?.caption) text = message.imageMessage.caption;
-      else return; // Unsupported message type
+      else return;
 
-      // Check if message starts with prefix
       if (!text.startsWith(PREFIX)) return;
 
-      // Extract command and args
       const args = text.slice(PREFIX.length).trim().split(/ +/);
       const commandName = args.shift().toLowerCase();
+      const chatId = msg.key.remoteJid;
+      const sender = msg.key.participant || msg.key.remoteJid;
+      const isOwner = sender && sender.includes(OWNER_NUMBER);
 
-      // Find matching plugin
       const plugin = plugins.find(p => p.name === commandName);
       if (!plugin) return;
 
-      // If plugin is owner-only, verify sender is owner
-      const sender = msg.key.participant || msg.key.remoteJid;
-      const isOwner = sender && sender.includes(OWNER_NUMBER);
+      // Check if command is owner-only
       if (plugin.ownerOnly && !isOwner) {
-        await sock.sendMessage(msg.key.remoteJid, { text: '❌ You are not authorized to use this command.' });
+        await sock.sendMessage(chatId, { text: '❌ You are not authorized to use this command.' });
         return;
       }
 
-      // Execute plugin
+      // Check feature toggle if required
+      if (plugin.toggleable) {
+        await db.read();
+        const isEnabled = db.data.toggles?.[chatId]?.[plugin.name];
+        if (!isEnabled) {
+          await sock.sendMessage(chatId, { text: `🚫 *${plugin.name}* is currently OFF in this chat.` });
+          return;
+        }
+      }
+
+      // Run plugin
       await plugin.execute(sock, msg, args);
     } catch (error) {
-      console.error('Error handling message:', error);
+      console.error('Error in message handler:', error);
     }
   }
 
-  // Listen for new messages
   sock.ev.on('messages.upsert', async (m) => {
     if (!m.messages) return;
     const msg = m.messages[0];
-    if (!msg.key.fromMe) { // Only respond to incoming messages
+    if (!msg.key.fromMe) {
       await handleMessage(msg);
     }
   });
