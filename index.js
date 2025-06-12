@@ -1,27 +1,32 @@
-const { default: makeWASocket } = require("@whiskeysockets/baileys");
-const { DisconnectReason } = require("@whiskeysockets/baileys");
+const { default: makeWASocket, DisconnectReason } = require("@whiskeysockets/baileys");
 const P = require("pino");
+const fs = require("fs");
+const path = require("path");
+
+const config = require("./config");
+const handler = require("./handler");
 
 async function startBot() {
   const sock = makeWASocket({
     printQRInTerminal: true,
     logger: P({ level: "silent" }),
-    auth: undefined,
   });
+
+  // Pass socket to handler to handle events
+  handler(sock);
 
   sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === "close") {
       if (
-        (lastDisconnect?.error)?.output?.statusCode !==
-        DisconnectReason.loggedOut
+        (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut
       ) {
-        startBot(); // reconnect if not logged out
+        startBot();
       } else {
-        console.log("🛑 Logged out, please re-authenticate.");
+        console.log("Logged out, please re-authenticate.");
       }
     } else if (connection === "open") {
-      console.log("✅ Bot connected!");
+      console.log("Bot connected");
     }
   });
 }
