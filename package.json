@@ -1,7 +1,7 @@
 {
-  "name": "gifteddavemd",
+  "name": "gifted-dave-md",
   "version": "1.0.0",
-  "description": "A fast, multi-functional WhatsApp bot built by Gifted-Dave",
+  "description": "Gifted Dave MD WhatsApp Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,6 +10,6 @@
   "license": "MIT",
   "dependencies": {
     "@whiskeysockets/baileys": "^6.6.0",
-    "pino": "^8.0.0"
+    "ytdl-core": "^4.11.4"
   }
 }
