@@ -1,10 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta http-equiv="refresh" content="0; url=/session/frontend.html" />
-  <title>Redirecting...</title>
-</head>
-<body>
-  <p>Redirecting to session generator...</p>
-</body>
+<html>
+  <head>
+    <title>Gifted-Dave-MD Session Generator</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 50px;
+      }
+      input, button {
+        padding: 10px;
+        margin: 10px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🤖 Gifted-Dave-MD Pair Code Generator</h1>
+    <p>Enter your WhatsApp number to get a pair code:</p>
+    <input type="text" id="phone" placeholder="e.g. +254700000000" />
+    <br />
+    <button onclick="generate()">Get Pair Code</button>
+    <p id="status"></p>
+
+    <script>
+      async function generate() {
+        const phone = document.getElementById("phone").value;
+        if (!phone) return alert("Please enter your phone number");
+
+        document.getElementById("status").innerText = "Generating pair code...";
+        
+        try {
+          const res = await fetch("https://gifted-session-backend.vercel.app/pair", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ number: phone }),
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            document.getElementById("status").innerHTML = `✅ Your Pair Code: <b>${data.pairingCode}</b>`;
+          } else {
+            document.getElementById("status").innerText = `❌ Error: ${data.message}`;
+          }
+        } catch (err) {
+          document.getElementById("status").innerText = "❌ Failed to connect to server.";
+        }
+      }
+    </script>
+  </body>
 </html>
