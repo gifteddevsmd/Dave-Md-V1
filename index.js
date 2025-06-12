@@ -1,79 +1,78 @@
-require('dotenv').config();
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = require('@adiwajshing/baileys');
-const { Boom } = require('@hapi/boom');
+const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
 
-const PREFIX = '!';
-const SESSION_FILE_PATH = './session/session.json';
+const { state, saveState } = useSingleFileAuthState('./session.json');
 
-// Auth state (creates session folder and file automatically)
-const { state, saveState } = useSingleFileAuthState(SESSION_FILE_PATH);
+// Load plugins dynamically from /plugins folder
+const plugins = [];
+const pluginsPath = path.join(__dirname, 'plugins');
+
+fs.readdirSync(pluginsPath).forEach(file => {
+  if (file.endsWith('.js')) {
+    const plugin = require(path.join(pluginsPath, file));
+    plugins.push(plugin);
+  }
+});
 
 async function startBot() {
-  const { version, isLatest } = await fetchLatestBaileysVersion();
-  console.log(`Using WA version v${version.join('.')}, isLatest: ${isLatest}`);
-
   const sock = makeWASocket({
-    version,
     auth: state,
     printQRInTerminal: true,
   });
 
-  // Save auth state on updates
   sock.ev.on('creds.update', saveState);
-
-  // Load all plugins from plugins folder
-  const plugins = {};
-  const pluginFiles = fs.readdirSync('./plugins').filter(file => file.endsWith('.js'));
-  for (const file of pluginFiles) {
-    const plugin = require(path.join(__dirname, 'plugins', file));
-    plugins[plugin.name] = plugin;
-  }
-  console.log(`Loaded plugins: ${Object.keys(plugins).join(', ')}`);
-
-  // Listen to incoming messages
-  sock.ev.on('messages.upsert', async ({ messages, type }) => {
-    if (type !== 'notify') return;
-    const msg = messages[0];
-    if (!msg.message || msg.key.fromMe) return; // Ignore system & own messages
-
-    const jid = msg.key.remoteJid;
-    const messageText = msg.message.conversation || msg.message.extendedTextMessage?.text;
-    if (!messageText) return;
-
-    // Check prefix
-    if (!messageText.startsWith(PREFIX)) return;
-
-    // Parse command and args
-    const args = messageText.slice(PREFIX.length).trim().split(/\s+/);
-    const commandName = args.shift().toLowerCase();
-
-    // Run matching plugin command
-    const plugin = plugins[commandName];
-    if (plugin) {
-      try {
-        await plugin.execute(sock, msg, args);
-      } catch (err) {
-        console.error(`Error executing plugin ${commandName}:`, err);
-      }
-    }
-  });
 
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect } = update;
     if (connection === 'close') {
-      const status = new Boom(lastDisconnect?.error)?.output?.statusCode;
-      if (status === DisconnectReason.loggedOut) {
-        console.log('Logged out, please delete session and re-scan QR.');
-      } else {
-        console.log('Disconnected, reconnecting...');
+      const statusCode = lastDisconnect?.error?.output?.statusCode;
+      if (statusCode !== DisconnectReason.loggedOut) {
+        console.log('Reconnecting...');
         startBot();
+      } else {
+        console.log('Logged out from WhatsApp');
       }
     } else if (connection === 'open') {
-      console.log('Connected to WhatsApp!');
+      console.log('Connected to WhatsApp');
+    }
+  });
+
+  // Message handler function
+  async function handleMessage(msg) {
+    try {
+      const message = msg.message;
+      if (!message) return;
+
+      // Get the text from different possible message types
+      let text = '';
+      if (message.conversation) text = message.conversation;
+      else if (message.extendedTextMessage?.text) text = message.extendedTextMessage.text;
+      else if (message.imageMessage?.caption) text = message.imageMessage.caption;
+      else return; // Not a supported message type for commands
+
+      // Extract command: first word lowercase
+      const command = text.trim().split(' ')[0].toLowerCase();
+
+      // Find matching plugin by command name
+      const plugin = plugins.find(p => p.name === command);
+
+      if (plugin) {
+        await plugin.execute(sock, msg, plugins);
+      }
+    } catch (error) {
+      console.error('Error handling message:', error);
+    }
+  }
+
+  // Listen for new messages
+  sock.ev.on('messages.upsert', async (m) => {
+    if (!m.messages) return;
+    const msg = m.messages[0];
+    if (!msg.key.fromMe) { // Only respond to incoming messages, not own messages
+      await handleMessage(msg);
     }
   });
 }
 
-startBot();
+startBot().catch(console.error);
