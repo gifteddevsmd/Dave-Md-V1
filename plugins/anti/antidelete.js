@@ -1,35 +1,35 @@
-const fs = require("fs");
-
-// Your WhatsApp number in JID format (replace with your own)
-const OWNER_JID = "254104260236@s.whatsapp.net";
-
 module.exports = {
   name: "antidelete",
-  description: "Toggle anti-delete mode and forward deleted messages to owner",
+  description: "Toggle anti-delete mode per chat",
   type: "anti",
 
+  // Command to toggle antidelete
   async command(sock, msg, args, db) {
     const chatId = msg.key.remoteJid;
-    const isEnabled = db.chats[chatId]?.antidelete;
 
     if (!db.chats[chatId]) db.chats[chatId] = {};
-    db.chats[chatId].antidelete = !isEnabled;
+    db.chats[chatId].antidelete = !db.chats[chatId].antidelete;
 
     await sock.sendMessage(chatId, {
-      text: `✅ Antidelete is now *${!isEnabled ? "enabled" : "disabled"}* in this chat.`,
+      text: `🛡️ Antidelete is now *${db.chats[chatId].antidelete ? "enabled" : "disabled"}* in this chat.`,
     });
   },
 
+  // When a message is deleted
   async onMessageDeleted(sock, msg, db) {
     const chatId = msg.key.remoteJid;
     const settings = db.chats[chatId];
     if (!settings?.antidelete) return;
 
-    const deletedMsg = msg.message || {};
-    const msgContent = deletedMsg?.extendedTextMessage?.text || "[Deleted Message Content]";
+    const from = msg.key.participant || chatId;
+    const deletedMsg = msg.message;
+    if (!deletedMsg) return;
 
-    await sock.sendMessage(OWNER_JID, {
-      text: `🛡️ *Antidelete Triggered*\n📍 Group: ${chatId}\n💬 Deleted: ${msgContent}`,
+    await sock.sendMessage(chatId, {
+      text: `⚠️ *Antidelete Activated!*\n👤 Sender: @${from.split("@")[0]}\n🗑️ Message:`,
+      mentions: [from],
     });
+
+    await sock.sendMessage(chatId, deletedMsg, { quoted: msg });
   },
 };
