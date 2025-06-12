@@ -1,14 +1,3 @@
-{
-  "name": "whatsapp-qr-bot",
-  "version": "1.0.0",
-  "description": "Minimal WhatsApp bot with QR code using Baileys",
-  "main": "index.js",
-  "type": "commonjs",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "@whiskeysockets/baileys": "^6.7.0",
-    "chalk": "^5.0.0"
-  }
-}
+git add .
+git commit -m "chore: update dependencies and start script for pair code backend"
+git push origin main
