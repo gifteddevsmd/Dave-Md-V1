@@ -1,15 +1,12 @@
 module.exports = {
   name: "help",
-  description: "List all available commands",
-  execute: async (sock, msg) => {
+  description: "List all commands and usage",
+  execute: async (sock, msg, plugins) => {
     const jid = msg.key.remoteJid;
-    const helpMessage = `
-*Available Commands:*
-- ping: Check if the bot is alive.
-- help: Display this help message.
-    
-More commands coming soon! 🚀
-    `;
-    await sock.sendMessage(jid, { text: helpMessage });
+    let helpText = "✨ *Gifted-Dave-MD Commands List* ✨\n\n";
+    plugins.forEach(plugin => {
+      helpText += `• *${plugin.name}* - ${plugin.description}\n`;
+    });
+    await sock.sendMessage(jid, { text: helpText });
   },
 };
