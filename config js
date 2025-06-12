@@ -1,0 +1,5 @@
+module.exports = {
+  ownerNumber: "254104260236@s.whatsapp.net",
+  botName: "Gifted-Dave-MD",
+  prefix: "!",
+};
