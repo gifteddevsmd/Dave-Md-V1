@@ -3,7 +3,7 @@ node_modules/
 
 # Log files
 *.log
-logs
+logs/
 npm-debug.log*
 
 # Environment variables
@@ -12,6 +12,7 @@ npm-debug.log*
 
 # Session files
 session/
+sessions/
 session.json
 auth_info*
 creds.json
@@ -27,7 +28,10 @@ Thumbs.db
 dist/
 build/
 
-# Other
+# Archives
 *.zip
 *.rar
 *.7z
+
+# Heroku
+.heroku/
