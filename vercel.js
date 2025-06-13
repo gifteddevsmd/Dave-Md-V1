@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "index.js"
+    }
+  ],
+  "env": {
+    "SESSION_SECRET": "your_strong_secret_here",
+    "BASE_URL": "https://gifted-session-backend.vercel.app",
+    "BOT_NAME": "Gifted-Dave-MD"
+  }
+  }
