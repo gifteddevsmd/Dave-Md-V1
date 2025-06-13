@@ -1,27 +1,24 @@
-// db.js
-const { Low, JSONFile } = require('lowdb');
+const { Low } = require('lowdb');
+const { JSONFile } = require('lowdb/node');
 const path = require('path');
 const fs = require('fs');
 
-// Ensure db.json exists
-const dbFile = path.join(__dirname, 'db.json');
-if (!fs.existsSync(dbFile)) {
-  fs.writeFileSync(dbFile, JSON.stringify({
-    sessions: [],
-    toggles: {}
-  }, null, 2));
-}
+// Create 'data' folder if it doesn't exist
+const folder = path.join(__dirname, 'data');
+if (!fs.existsSync(folder)) fs.mkdirSync(folder);
 
-// Set up lowdb
-const adapter = new JSONFile(dbFile);
+// Setup db file
+const file = path.join(folder, 'db.json');
+const adapter = new JSONFile(file);
 const db = new Low(adapter);
 
-// Auto-load and initialize default structure
+// Initialize db structure
 async function initDB() {
   await db.read();
-  db.data ||= {};
-  db.data.sessions ||= [];
-  db.data.toggles ||= {};
+  db.data = db.data || {
+    sessions: [],
+    toggles: {}
+  };
   await db.write();
 }
 
