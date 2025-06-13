@@ -1,24 +1,11 @@
-const { Low, JSONFile } = require('lowdb');
-const path = require('path');
-const fs = require('fs');
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
 
-// Path to your database file
-const dbFile = path.join(__dirname, 'database.json');
+const adapter = new JSONFile('sessions.json')
+const db = new Low(adapter)
 
-// Ensure file exists
-if (!fs.existsSync(dbFile)) {
-  fs.writeFileSync(dbFile, JSON.stringify({ toggles: {} }, null, 2));
-}
+await db.read()
+db.data ||= { sessions: [] }
+await db.write()
 
-const adapter = new JSONFile(dbFile);
-const db = new Low(adapter);
-
-// Read data
-async function init() {
-  await db.read();
-  db.data ||= { toggles: {} };
-  await db.write();
-}
-init();
-
-module.exports = db;
+export default db
