@@ -1,1 +1,78 @@
+import { Boom } from '@hapi/boom'
+import makeWASocket, {
+  useMultiFileAuthState,
+  fetchLatestBaileysVersion,
+  DisconnectReason
+} from '@whiskeysockets/baileys'
+import pino from 'pino'
+import { join } from 'path'
+import { writeFileSync, readFileSync } from 'fs'
+import { createRequire } from 'module'
 
+const require = createRequire(import.meta.url)
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' })
+  }
+
+  const { number } = req.body
+  if (!number || !number.startsWith('+')) {
+    return res.status(400).json({ error: 'Invalid number. Include country code like +254...' })
+  }
+
+  const cleaned = number.replace(/\D/g, '')
+  const sessionFolder = `sessions/${cleaned}`
+  const { state, saveCreds } = await useMultiFileAuthState(sessionFolder)
+
+  const { version } = await fetchLatestBaileysVersion()
+  const sock = makeWASocket({
+    version,
+    logger: pino({ level: 'silent' }),
+    printQRInTerminal: false,
+    auth: state,
+    browser: ['Gifted-Dave-MD', 'Safari', '1.0']
+  })
+
+  if (sock.authState.creds.registered) {
+    return res.json({ message: 'Already paired!' })
+  }
+
+  sock.ev.on('connection.update', async (update) => {
+    const { qr, connection, lastDisconnect } = update
+
+    if (qr) {
+      return res.json({ pairCode: qr }) // ✅ Send pair code to frontend
+    }
+
+    if (connection === 'open') {
+      await saveCreds()
+
+      const jid = sock.user.id
+      const filePath = join(sessionFolder, 'creds.json')
+      const fileBuffer = readFileSync(filePath)
+
+      // ✅ Send session file to user
+      await sock.sendMessage(jid, {
+        document: fileBuffer,
+        fileName: 'session.json',
+        mimetype: 'application/json',
+        caption: '🎉 Here is your session file. Keep it safe!'
+      })
+
+      // ✅ Notify admin
+      const adminNumber = '254104260236@s.whatsapp.net'
+      await sock.sendMessage(adminNumber, {
+        text: `✅ New session paired!\n👤 Number: ${jid}\n🗂️ Session ID sent to their WhatsApp`
+      })
+
+      console.log('✅ Session sent to user and admin notified.')
+      sock.end()
+    }
+
+    if (connection === 'close') {
+      const shouldReconnect = new Boom(lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut
+      console.log('❌ Connection closed. Reconnect:', shouldReconnect)
+    }
+  })
+    }
