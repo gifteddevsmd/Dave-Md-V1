@@ -2,10 +2,10 @@
   "name": "gifted-session-backend",
   "version": "1.0.0",
   "description": "Backend for Gifted-Dave Pair Code Session System",
-  "main": "server.js",
+  "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^6.7.0",
