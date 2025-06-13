@@ -1,15 +1,10 @@
 const { Low } = require('lowdb');
 const { JSONFile } = require('lowdb/node');
 
-const adapter = new JSONFile('./db.json');
+const adapter = new JSONFile('./data.json');
 const db = new Low(adapter);
 
-async function initDB() {
-  await db.read();
-  db.data ||= { toggles: {}, sessions: [] };
-  await db.write();
-}
-
-initDB();
+// Ensure database is initialized
+db.data ||= { sessions: [], toggles: {} };
 
 module.exports = db;
