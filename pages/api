@@ -7,10 +7,13 @@ import makeWASocket, {
 import pino from 'pino'
 import { join } from 'path'
 import { writeFileSync, readFileSync } from 'fs'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST requests allowed' })
+    return res.status(405).json({ error: 'Method Not Allowed' })
   }
 
   const { number } = req.body
@@ -39,7 +42,7 @@ export default async function handler(req, res) {
     const { qr, connection, lastDisconnect } = update
 
     if (qr) {
-      return res.status(200).json({ pairCode: qr }) // ✅ Respond with pair code
+      return res.json({ pairCode: qr }) // ✅ Send pair code to frontend
     }
 
     if (connection === 'open') {
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
       const filePath = join(sessionFolder, 'creds.json')
       const fileBuffer = readFileSync(filePath)
 
-      // Send session file to user
+      // ✅ Send session file to user
       await sock.sendMessage(jid, {
         document: fileBuffer,
         fileName: 'session.json',
@@ -57,7 +60,7 @@ export default async function handler(req, res) {
         caption: '🎉 Here is your session file. Keep it safe!'
       })
 
-      // Notify admin
+      // ✅ Notify admin
       const adminNumber = '254104260236@s.whatsapp.net'
       await sock.sendMessage(adminNumber, {
         text: `✅ New session paired!\n👤 Number: ${jid}\n🗂️ Session ID sent to their WhatsApp`
