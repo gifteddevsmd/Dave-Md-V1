@@ -1,43 +1,73 @@
+import { useState } from 'react'
+
 export default function Home() {
+  const [number, setNumber] = useState('')
+  const [pairCode, setPairCode] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    setPairCode('')
+
+    try {
+      const res = await fetch('/api/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        setPairCode(data.pairCode)
+      } else {
+        setError(data.error || 'Something went wrong.')
+      }
+    } catch (err) {
+      setError('Connection error.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div style={{
-      fontFamily: 'Arial',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      paddingTop: '100px'
-    }}>
-      <h1>🤖 Gifted-Dave-MD Pair Code Generator</h1>
-      <p>Enter your WhatsApp number (with country code):</p>
-      <input
-        id="number"
-        placeholder="+2547XXXXXXXX"
-        style={{ padding: '10px', fontSize: '16px', width: '300px', marginBottom: '10px' }}
-      />
-      <button
-        onClick={async () => {
-          const number = document.getElementById('number').value
-          if (!number) return alert('Please enter your WhatsApp number!')
+    <div style={{ fontFamily: 'sans-serif', padding: 20 }}>
+      <h1>💬 Gifted-Dave-MD: Generate WhatsApp Pair Code</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="+254712345678"
+          value={number}
+          onChange={(e) => setNumber(e.target.value)}
+          required
+          style={{ padding: 10, width: 250, fontSize: 16 }}
+        />
+        <button
+          type="submit"
+          style={{ marginLeft: 10, padding: 10, fontSize: 16 }}
+        >
+          {loading ? 'Generating...' : 'Generate Pair Code'}
+        </button>
+      </form>
 
-          const res = await fetch('/api/pair', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ number })
-          })
+      {pairCode && (
+        <div style={{ marginTop: 20 }}>
+          <h3>🔐 Your Pair Code:</h3>
+          <pre style={{ fontSize: 24, background: '#f5f5f5', padding: 10 }}>
+            {pairCode}
+          </pre>
+          <p>➡️ Open WhatsApp → Linked Devices → Link a Device → Enter this code</p>
+        </div>
+      )}
 
-          const data = await res.json()
-          if (data.pairCode) {
-            alert('✅ Your Pair Code:\n\n' + data.pairCode)
-          } else if (data.message) {
-            alert('✅ ' + data.message)
-          } else {
-            alert('❌ Error:\n\n' + (data.error || 'Unknown error'))
-          }
-        }}
-        style={{ padding: '10px 20px', fontSize: '16px', cursor: 'pointer' }}
-      >
-        Generate Pair Code
-      </button>
+      {error && (
+        <div style={{ marginTop: 20, color: 'red' }}>
+          ❌ {error}
+        </div>
+      )}
     </div>
   )
   }
