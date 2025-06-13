@@ -1,7 +1,26 @@
 {
   "name": "gifted-session-backend",
   "version": "1.0.0",
-  "type": "module",
-  "main": "index.mjs",
+  "description": "🌐 Backend for generating WhatsApp Pairing Code and managing sessions for Gifted-Dave-MD bot.",
+  "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "node index.m
+    "start": "node index.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "session",
+    "baileys",
+    "paircode",
+    "gifted-dave-md",
+    "bot-backend"
+  ],
+  "author": "Gifted Dave",
+  "license": "MIT",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "express": "^4.19.2",
+    "lowdb": "^6.0.1",
+    "nodemon": "^3.0.3"
+  }
+}
