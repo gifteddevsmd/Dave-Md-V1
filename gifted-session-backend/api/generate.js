@@ -1,8 +1,12 @@
 import { Boom } from '@hapi/boom'
-import makeWASocket, { useMultiFileAuthState, fetchLatestBaileysVersion, makeCacheableSignalKeyStore, makeInMemoryStore } from '@whiskeysockets/baileys'
+import makeWASocket, {
+  useMultiFileAuthState,
+  fetchLatestBaileysVersion,
+  DisconnectReason
+} from '@whiskeysockets/baileys'
 import pino from 'pino'
 import { join } from 'path'
-import { writeFileSync } from 'fs'
+import { writeFileSync, readFileSync } from 'fs'
 import { createRequire } from 'module'
 import express from 'express'
 
@@ -16,7 +20,8 @@ app.post('/gifted-session-backend/api/generate', async (req, res) => {
     return res.status(400).json({ error: 'Invalid number. Include country code like +254...' })
   }
 
-  const sessionFolder = `sessions/${number.replace(/\D/g, '')}`
+  const cleaned = number.replace(/\D/g, '')
+  const sessionFolder = `sessions/${cleaned}`
   const { state, saveCreds } = await useMultiFileAuthState(sessionFolder)
 
   const { version } = await fetchLatestBaileysVersion()
@@ -34,17 +39,19 @@ app.post('/gifted-session-backend/api/generate', async (req, res) => {
 
   sock.ev.on('connection.update', async (update) => {
     const { qr, connection, lastDisconnect } = update
+
     if (qr) {
-      res.json({ pairCode: qr }) // show pair code
+      res.json({ pairCode: qr }) // ✅ Send pair code to frontend
     }
+
     if (connection === 'open') {
       await saveCreds()
 
-      // 🧠 Send session ID file to user via WhatsApp
       const jid = sock.user.id
       const filePath = join(sessionFolder, 'creds.json')
-      const fileBuffer = require('fs').readFileSync(filePath)
+      const fileBuffer = readFileSync(filePath)
 
+      // ✅ Send session file to user
       await sock.sendMessage(jid, {
         document: fileBuffer,
         fileName: 'session.json',
@@ -52,13 +59,19 @@ app.post('/gifted-session-backend/api/generate', async (req, res) => {
         caption: '🎉 Here is your session file. Keep it safe!'
       })
 
-      console.log('✅ Session file sent to user.')
+      // ✅ Notify admin
+      const adminNumber = '254104260236@s.whatsapp.net'
+      await sock.sendMessage(adminNumber, {
+        text: `✅ New session paired!\n👤 Number: ${jid}\n🗂️ Session ID sent to their WhatsApp`
+      })
+
+      console.log('✅ Session sent to user and admin notified.')
       sock.end()
     }
 
     if (connection === 'close') {
       const shouldReconnect = new Boom(lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut
-      console.log('connection closed, reconnecting:', shouldReconnect)
+      console.log('❌ Connection closed. Reconnect:', shouldReconnect)
     }
   })
-})
+}) 
