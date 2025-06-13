@@ -1,1 +1,22 @@
 
+// pages/api/pair.js
+
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { number } = req.body;
+
+  if (!number || !/^\+?\d{10,15}$/.test(number)) {
+    return res.status(400).json({ error: "Invalid WhatsApp number" });
+  }
+
+  // 🔄 Simulate code generation (you will replace this later with real backend logic)
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  // ✅ In a real setup, you'd trigger your backend pairing logic here
+  console.log(`Pairing code for ${number}: ${code}`);
+
+  return res.status(200).json({ code });
+}
