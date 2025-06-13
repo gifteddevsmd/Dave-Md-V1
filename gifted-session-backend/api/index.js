@@ -1,15 +1,19 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const pako = require("pako");
-const base64js = require("base64-js");
-const makeWASocket = require("@whiskeysockets/baileys").default;
-const { useSingleFileAuthState } = require("@whiskeysockets/baileys");
+import express from "express";
+import fs from "fs";
+import path, { dirname } from "path";
+import pako from "pako";
+import base64js from "base64-js";
+import makeWASocket, { useSingleFileAuthState } from "@whiskeysockets/baileys";
+import { fileURLToPath } from "url";
+
+// Fix for __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(express.json());
 
-// Serve frontend files from ../frontend folder
+// Serve frontend files
 app.use(express.static(path.join(__dirname, "../frontend")));
 
 app.get("/", (req, res) => {
@@ -48,4 +52,4 @@ app.post("/pair", async (req, res) => {
   sock.ev.on("creds.update", saveState);
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
