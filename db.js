@@ -1,24 +1,12 @@
-const { Low } = require('lowdb');
-const { JSONFile } = require('lowdb/node');
+// db.js
+const { Low, JSONFile } = require('lowdb');
 const path = require('path');
+const fs = require('fs');
 
-// Define the path to your database file
-const dbFile = path.join(__dirname, 'data.json');
+const dbFile = path.join(__dirname, 'db.json');
+if (!fs.existsSync(dbFile)) fs.writeFileSync(dbFile, '{}');
 
-// Setup adapter and database
 const adapter = new JSONFile(dbFile);
 const db = new Low(adapter);
-
-// Initialize the DB with default structure if empty
-async function initDB() {
-  await db.read();
-  db.data ||= {
-    toggles: {},     // Toggle features per chat/user
-    sessions: []     // Stores session data: [{ number, pairCode }]
-  };
-  await db.write();
-}
-
-initDB();
 
 module.exports = db;
