@@ -12,6 +12,11 @@ const db = require('./db');
 const app = express();
 app.use(express.json());
 
+// === Root Route to Prevent Heroku Crash ===
+app.get('/', (req, res) => {
+  res.send('🎉 Gifted Session Backend is Running!');
+});
+
 // === Session Folder Setup ===
 const sessionFolder = path.join(__dirname, 'session');
 if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
