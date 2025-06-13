@@ -7,24 +7,24 @@ const {
   DisconnectReason
 } = require('@whiskeysockets/baileys');
 
-const db = require('./db'); // Make sure db.js exists
+const db = require('./db');
 
 const app = express();
 app.use(express.json());
 
-// === Session Setup ===
+// === Session Folder Setup ===
 const sessionFolder = path.join(__dirname, 'session');
 if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
+
 const { state, saveState } = useSingleFileAuthState(path.join(sessionFolder, 'auth.json'));
 
 // === Bot Config ===
 const OWNER_NUMBER = process.env.OWNER_NUMBER || '254104260236@s.whatsapp.net';
 const PREFIX = process.env.PREFIX || '.';
 
-// === Load Plugins ===
+// === Plugin Loader ===
 const plugins = [];
 const pluginsPath = path.join(__dirname, 'plugins');
-
 fs.readdirSync(pluginsPath).forEach(file => {
   if (file.endsWith('.js')) {
     const plugin = require(path.join(pluginsPath, file));
@@ -32,13 +32,14 @@ fs.readdirSync(pluginsPath).forEach(file => {
   }
 });
 
-// === Pair Code API ===
+// === Pair Code API Endpoint ===
 app.post('/api/pair', async (req, res) => {
   const { number } = req.body;
   if (!number) return res.status(400).json({ error: 'Number is required' });
 
   try {
-    const { state, saveCreds } = useSingleFileAuthState(path.join(sessionFolder, `session-${number}.json`));
+    const sessionFile = path.join(sessionFolder, `session-${number}.json`);
+    const { state, saveCreds } = useSingleFileAuthState(sessionFile);
     const sock = makeWASocket({
       auth: state,
       printQRInTerminal: false
@@ -47,17 +48,19 @@ app.post('/api/pair', async (req, res) => {
     sock.ev.on('creds.update', saveCreds);
 
     const pairCode = await sock.requestPairingCode(number);
+    await db.read();
+    db.data.sessions = db.data.sessions || [];
     db.data.sessions.push({ number, pairCode });
     await db.write();
 
     return res.json({ pairCode });
   } catch (err) {
-    console.error(err);
+    console.error('❌ Pairing error:', err);
     return res.status(500).json({ error: 'Failed to generate pair code' });
   }
 });
 
-// === Start Bot ===
+// === Bot Logic ===
 async function startBot() {
   const sock = makeWASocket({
     auth: state,
@@ -74,7 +77,7 @@ async function startBot() {
         console.log('⚠️ Reconnecting...');
         startBot();
       } else {
-        console.log('🚫 Logged out from WhatsApp');
+        console.log('🚫 Logged out');
       }
     } else if (connection === 'open') {
       console.log('✅ Connected to WhatsApp!');
@@ -132,9 +135,9 @@ async function startBot() {
   });
 }
 
-// === Start Server + Bot ===
+// === Start Express Server + Bot ===
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🌐 Server running on port ${PORT}`);
+  console.log(`🌐 Server is live on port ${PORT}`);
   startBot().catch(console.error);
 });
