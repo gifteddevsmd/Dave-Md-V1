@@ -1,24 +1,19 @@
-console.log('🟢 index.mjs booting...');
+console.log('🟢 index.js booting...');
 
-import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import {
-  default as makeWASocket,
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const {
+  default: makeWASocket,
   useSingleFileAuthState,
   DisconnectReason
-} from '@whiskeysockets/baileys';
-import db from './db.js';
-
-// === Directory setup ===
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+} = require('@whiskeysockets/baileys');
+const db = require('./db');
 
 const app = express();
 app.use(express.json());
 
-// === Root Route to Prevent Heroku Crash ===
+// === Root Route ===
 app.get('/', (req, res) => {
   res.send('🎉 Gifted Session Backend is Running!');
 });
@@ -30,23 +25,22 @@ if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
 const authFile = path.join(sessionFolder, 'auth.json');
 const { state, saveState } = useSingleFileAuthState(authFile);
 
-// === Bot Config ===
+// === Config ===
 const OWNER_NUMBER = process.env.OWNER_NUMBER || '254104260236@s.whatsapp.net';
 const PREFIX = process.env.PREFIX || '.';
 
 // === Plugin Loader ===
 const plugins = [];
 const pluginsPath = path.join(__dirname, 'plugins');
-
 if (fs.existsSync(pluginsPath)) {
-  const pluginFiles = fs.readdirSync(pluginsPath).filter(file => file.endsWith('.js'));
-  for (const file of pluginFiles) {
-    const pluginModule = await import(`./plugins/${file}`);
-    plugins.push(pluginModule.default);
+  const files = fs.readdirSync(pluginsPath).filter(f => f.endsWith('.js'));
+  for (const file of files) {
+    const plugin = require(`./plugins/${file}`);
+    plugins.push(plugin.default || plugin);
   }
 }
 
-// === Pair Code API Endpoint ===
+// === Pair Code API ===
 app.post('/api/pair', async (req, res) => {
   const { number } = req.body;
   if (!number) return res.status(400).json({ error: 'Number is required' });
@@ -60,8 +54,8 @@ app.post('/api/pair', async (req, res) => {
     });
 
     sock.ev.on('creds.update', saveCreds);
-
     const pairCode = await sock.requestPairingCode(number);
+
     await db.read();
     db.data.sessions = db.data.sessions || [];
     db.data.sessions.push({ number, pairCode });
@@ -98,11 +92,13 @@ async function startBot() {
     }
   });
 
-  async function handleMessage(msg) {
+  sock.ev.on('messages.upsert', async (m) => {
+    if (!m.messages || !m.messages[0]) return;
+    const msg = m.messages[0];
+    if (msg.key.fromMe) return;
+
     try {
       const message = msg.message;
-      if (!message) return;
-
       let text = '';
       if (message.conversation) text = message.conversation;
       else if (message.extendedTextMessage?.text) text = message.extendedTextMessage.text;
@@ -138,18 +134,10 @@ async function startBot() {
     } catch (error) {
       console.error('❌ Error handling message:', error);
     }
-  }
-
-  sock.ev.on('messages.upsert', async (m) => {
-    if (!m.messages) return;
-    const msg = m.messages[0];
-    if (!msg.key.fromMe) {
-      await handleMessage(msg);
-    }
   });
 }
 
-// === Start Express Server + Bot ===
+// === Start Server ===
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🌐 Server is live on port ${PORT}`);
