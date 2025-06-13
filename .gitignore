@@ -27,6 +27,8 @@ Thumbs.db
 # Build files
 dist/
 build/
+.next/          # Next.js build output
+.vercel/        # Vercel deployment metadata
 
 # Archives
 *.zip
