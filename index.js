@@ -1,11 +1,16 @@
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const {
   default: makeWASocket,
   useSingleFileAuthState,
-  DisconnectReason,
+  DisconnectReason
 } = require('@whiskeysockets/baileys');
-const fs = require('fs');
-const path = require('path');
-const db = require('./db'); // Make sure you have db.js
+
+const db = require('./db'); // Make sure db.js exists
+
+const app = express();
+app.use(express.json());
 
 // === Session Setup ===
 const sessionFolder = path.join(__dirname, 'session');
@@ -13,7 +18,7 @@ if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
 const { state, saveState } = useSingleFileAuthState(path.join(sessionFolder, 'auth.json'));
 
 // === Bot Config ===
-const OWNER_NUMBER = process.env.OWNER_NUMBER || '254104260236@s.whatsapp.net'; // Replace with your real owner JID
+const OWNER_NUMBER = process.env.OWNER_NUMBER || '254104260236@s.whatsapp.net';
 const PREFIX = process.env.PREFIX || '.';
 
 // === Load Plugins ===
@@ -27,11 +32,36 @@ fs.readdirSync(pluginsPath).forEach(file => {
   }
 });
 
+// === Pair Code API ===
+app.post('/api/pair', async (req, res) => {
+  const { number } = req.body;
+  if (!number) return res.status(400).json({ error: 'Number is required' });
+
+  try {
+    const { state, saveCreds } = useSingleFileAuthState(path.join(sessionFolder, `session-${number}.json`));
+    const sock = makeWASocket({
+      auth: state,
+      printQRInTerminal: false
+    });
+
+    sock.ev.on('creds.update', saveCreds);
+
+    const pairCode = await sock.requestPairingCode(number);
+    db.data.sessions.push({ number, pairCode });
+    await db.write();
+
+    return res.json({ pairCode });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Failed to generate pair code' });
+  }
+});
+
 // === Start Bot ===
 async function startBot() {
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true, // Only shows QR on first run
+    printQRInTerminal: true
   });
 
   sock.ev.on('creds.update', saveState);
@@ -73,13 +103,11 @@ async function startBot() {
       const plugin = plugins.find(p => p.name === commandName);
       if (!plugin) return;
 
-      // Owner only?
       if (plugin.ownerOnly && !isOwner) {
         await sock.sendMessage(chatId, { text: '❌ You are not allowed to use this command.' });
         return;
       }
 
-      // Check feature toggle
       if (plugin.toggleable) {
         await db.read();
         const isEnabled = db.data.toggles?.[chatId]?.[plugin.name];
@@ -89,7 +117,6 @@ async function startBot() {
         }
       }
 
-      // Run plugin
       await plugin.execute(sock, msg, args);
     } catch (error) {
       console.error('❌ Error handling message:', error);
@@ -105,4 +132,9 @@ async function startBot() {
   });
 }
 
-startBot().catch(console.error);
+// === Start Server + Bot ===
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`🌐 Server running on port ${PORT}`);
+  startBot().catch(console.error);
+});
