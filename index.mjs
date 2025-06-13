@@ -1,15 +1,19 @@
-console.log('🟢 index.js booting...');
+console.log('🟢 index.mjs booting...');
 
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const {
-  default: makeWASocket,
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import {
+  default as makeWASocket,
   useSingleFileAuthState,
   DisconnectReason
-} = require('@whiskeysockets/baileys');
+} from '@whiskeysockets/baileys';
+import db from './db.js';
 
-const db = require('./db');
+// === Directory setup ===
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
@@ -23,7 +27,8 @@ app.get('/', (req, res) => {
 const sessionFolder = path.join(__dirname, 'session');
 if (!fs.existsSync(sessionFolder)) fs.mkdirSync(sessionFolder);
 
-const { state, saveState } = useSingleFileAuthState(path.join(sessionFolder, 'auth.json'));
+const authFile = path.join(sessionFolder, 'auth.json');
+const { state, saveState } = useSingleFileAuthState(authFile);
 
 // === Bot Config ===
 const OWNER_NUMBER = process.env.OWNER_NUMBER || '254104260236@s.whatsapp.net';
@@ -32,12 +37,14 @@ const PREFIX = process.env.PREFIX || '.';
 // === Plugin Loader ===
 const plugins = [];
 const pluginsPath = path.join(__dirname, 'plugins');
-fs.readdirSync(pluginsPath).forEach(file => {
-  if (file.endsWith('.js')) {
-    const plugin = require(path.join(pluginsPath, file));
-    plugins.push(plugin);
+
+if (fs.existsSync(pluginsPath)) {
+  const pluginFiles = fs.readdirSync(pluginsPath).filter(file => file.endsWith('.js'));
+  for (const file of pluginFiles) {
+    const pluginModule = await import(`./plugins/${file}`);
+    plugins.push(pluginModule.default);
   }
-});
+}
 
 // === Pair Code API Endpoint ===
 app.post('/api/pair', async (req, res) => {
