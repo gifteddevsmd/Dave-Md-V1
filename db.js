@@ -1,29 +1,56 @@
-const { Low } = require('lowdb');
-const { JSONFile } = require('lowdb/node');
-const path = require('path');
-const fs = require('fs');
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
 
-// Ensure ./data folder exists
-const dataFolder = path.join(__dirname, 'data');
-if (!fs.existsSync(dataFolder)) {
-  fs.mkdirSync(dataFolder);
+const adapter = new JSONFile('./database.json')
+const db = new Low(adapter)
+await db.read()
+
+db.data ||= {
+  users: {},
+  chats: {},
+  settings: {},
+  sessions: {},
+  statistic: {},
+  game: {},
+  others: {},
+  sticker: {},
+  dashboard: {},
+  message: {},
+  jadibot: {},
+  tos: {},
+  anonymous: {},
+  blockcmd: [],
+  cmdmedia: {},
+  queque: {},
+  premium: {},
+  name: {},
+  autobio: {},
+  ban: {},
+  badword: [],
+  viewOnce: [],
+  expired: [],
+  audio: {},
+  public: true,
+  restrict: false,
+  self: false,
+  autoreadsw: false,
+  autoblockcmd: false,
+  autoblok212: false,
+  gamewaktu: 60,
+  jadibotwaktu: 60,
+  debug: false,
+  auto: {
+    autoreactstatus: true,
+    autoreactmessages: true,
+    autosavestatus: true,
+    autoviewstatus: true
+  },
+  anti: {
+    antideletestatus: true
+  },
+  toggles: {}
 }
 
-// Point to JSON file
-const file = path.join(dataFolder, 'db.json');
-const adapter = new JSONFile(file);
-const db = new Low(adapter);
+await db.write()
 
-// Init data if empty
-async function init() {
-  await db.read();
-  db.data ||= {
-    sessions: [],
-    toggles: {}
-  };
-  await db.write();
-}
-
-init();
-
-module.exports = db;
+export default db
