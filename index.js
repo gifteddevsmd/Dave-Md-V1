@@ -1,126 +1,122 @@
-const express = require('express'); const fs = require('fs'); const randomstring = require('randomstring'); const path = require('path');
+const express = require('express');
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const fs = require('fs');
+const randomstring = require('randomstring');
+const path = require('path');
 
-const app = express(); app.use(express.json());
+const app = express();
+app.use(express.json());
 
-const PORT = process.env.PORT || 3000; const sessionsPath = path.join(__dirname, 'sessions');
+const PORT = process.env.PORT || 3000;
+const sessionsPath = path.join(__dirname, 'sessions');
 
-if (!fs.existsSync(sessionsPath)) { fs.mkdirSync(sessionsPath); }
-
-// Store in-memory retry tracking let lastPairTime = {};
-
-// Step 1: User starts pairing by entering phone number app.post('/start-pairing', async (req, res) => { const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress; const now = Date.now();
-
-if (!req.body.number) return res.status(400).json({ error: 'Phone number is required.' });
-
-// Anti-spam: 10 seconds per IP
-if (lastPairTime[ip] && now - lastPairTime[ip] < 10000) {
-    return res.status(429).json({ error: 'Wait 10 seconds before trying again.' });
-}
-lastPairTime[ip] = now;
-
-const number = req.body.number;
-const code = Math.floor(100000 + Math.random() * 900000); // 6-digit code
-const sessionId = `gifteddave~${randomstring.generate(6).toLowerCase()}`;
-
-// Save pairing info
-fs.writeFileSync(path.join(sessionsPath, `${number}.json`), JSON.stringify({ code, sessionId }));
-
-// Simulate code delivery - you should replace with actual bot/WhatsApp sender
-console.log(`📨 Simulated sending code ${code} to WhatsApp number ${number}`);
-
-res.json({ message: '✅ Code sent to WhatsApp.' });
-
-});
-
-// Step 2: User enters received code to confirm pairing app.post('/verify-code', (req, res) => { const { number, code } = req.body; if (!number || !code) return res.status(400).json({ error: 'Number and code are required.' });
-
-const sessionFile = path.join(sessionsPath, `${number}.json`);
-if (!fs.existsSync(sessionFile)) return res.status(404).json({ error: 'Pairing not found.' });
-
-const data = JSON.parse(fs.readFileSync(sessionFile));
-if (String(data.code) !== String(code)) {
-    return res.status(401).json({ error: 'Incorrect code. Try again.' });
+if (!fs.existsSync(sessionsPath)) {
+    fs.mkdirSync(sessionsPath);
 }
 
-res.json({ message: '✅ Verified!', sessionId: data.sessionId });
+let lastPairTime = {};
+let pairingInProgress = false;
 
+app.post('/pair', async (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    const now = Date.now();
+
+    if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
+
+    if (lastPairTime[ip] && now - lastPairTime[ip] < 10000) {
+        return res.status(429).json({ error: 'Wait 10 seconds before pairing again.' });
+    }
+    lastPairTime[ip] = now;
+
+    if (pairingInProgress) {
+        return res.status(409).json({ error: 'Pairing already in progress. Try again shortly.' });
+    }
+
+    pairingInProgress = true;
+
+    const number = req.body.number;
+    const code = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+    const sessionId = `gifteddave~${randomstring.generate(5).toLowerCase()}`;
+    const sessionFile = path.join(sessionsPath, `${sessionId}.json`);
+
+    const client = new Client({
+        authStrategy: new LocalAuth({ clientId: sessionId }),
+        puppeteer: {
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
+        }
+    });
+
+    client.on('ready', async () => {
+        console.log(`✅ Client ready for ${number}`);
+        try {
+            await client.sendMessage(`${number}@c.us`, `🧾 Your Dave-Md-V1 code is: *${code}*\nSession ID: \`${sessionId}\`\nUse this code to complete setup.`);
+            fs.writeFileSync(sessionFile, JSON.stringify({ number, sessionId, code }));
+            console.log(`✅ Code sent to ${number}: ${code}`);
+        } catch (e) {
+            console.error(`❌ Failed to send code to ${number}`, e);
+        }
+        pairingInProgress = false;
+        await client.destroy(); // destroy session after sending
+    });
+
+    client.on('auth_failure', () => {
+        console.error(`❌ Auth failure for ${number}`);
+        pairingInProgress = false;
+    });
+
+    client.on('disconnected', () => {
+        console.log(`⚠️ Client disconnected for ${number}`);
+        pairingInProgress = false;
+    });
+
+    try {
+        await client.initialize();
+        return res.json({ message: '✅ Code is being sent to WhatsApp', sessionId });
+    } catch (err) {
+        console.error('❌ Pairing error:', err);
+        pairingInProgress = false;
+        return res.status(500).json({ error: 'Internal error during pairing.' });
+    }
 });
 
-// Pairing UI page app.get('/', (req, res) => { res.send(`<!DOCTYPE html>
-
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dave-Md-V1 Pairing</title>
-    <style>
-        body { font-family: Arial; background: #e6f2ff; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        form { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        input, button { padding: 12px; margin-top: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        p { margin-top: 15px; color: #555; }
-    </style>
-</head>
-<body>
-    <form onsubmit="handleSubmit(event)">
-        <h2>Pair WhatsApp</h2>
-        <input type="text" id="number" placeholder="Enter number e.g. 254712345678" required />
-        <button type="button" onclick="sendCode()">Send Code</button>
-        <input type="text" id="code" placeholder="Enter received code" style="display:none" />
-        <button type="submit" id="verifyBtn" style="display:none">Verify</button>
-        <p id="status"></p>
+// Simple frontend
+app.get('/', (req, res) => {
+    res.send(`
+    <html>
+    <head><title>Dave-Md-V1 Pair</title></head>
+    <body style="font-family:sans-serif;display:flex;justify-content:center;align-items:center;height:100vh;background:#eef;">
+    <form onsubmit="submitForm(event)" style="background:white;padding:30px;border-radius:8px;box-shadow:0 0 20px rgba(0,0,0,0.1);text-align:center;">
+        <h2>Start WhatsApp Pairing</h2>
+        <input id="number" placeholder="Enter phone number e.g. 254712345678" style="width:100%;padding:10px;margin:10px 0;" required />
+        <button type="submit" style="padding:10px 20px;">Submit</button>
+        <p id="status" style="margin-top:10px;"></p>
     </form>
     <script>
-        let phoneNumber = '';async function sendCode() {
-        phoneNumber = document.getElementById('number').value;
-        const status = document.getElementById('status');
-        status.innerText = '⏳ Sending code...';
-        try {
-            const res = await fetch('/start-pairing', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ number: phoneNumber })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                status.innerText = '✅ Code sent. Check your WhatsApp.';
-                document.getElementById('code').style.display = 'block';
-                document.getElementById('verifyBtn').style.display = 'block';
-            } else {
-                status.innerText = '❌ ' + (data.error || 'Failed to send code');
+        async function submitForm(e) {
+            e.preventDefault();
+            const number = document.getElementById('number').value;
+            const status = document.getElementById('status');
+            status.innerText = '⏳ Sending...';
+            try {
+                const res = await fetch('/pair', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    status.innerText = '✅ Code is being sent to your WhatsApp.';
+                } else {
+                    status.innerText = '❌ ' + data.error;
+                }
+            } catch (e) {
+                status.innerText = '❌ Request failed.';
             }
-        } catch (err) {
-            status.innerText = '❌ Failed to contact server';
         }
-    }
+    </script>
+    </body>
+    </html>`);
+});
 
-    async function handleSubmit(e) {
-        e.preventDefault();
-        const code = document.getElementById('code').value;
-        const status = document.getElementById('status');
-        status.innerText = '⏳ Verifying...';
-        try {
-            const res = await fetch('/verify-code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ number: phoneNumber, code })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                status.innerText = '✅ Verified! Your Session ID is: ' + data.sessionId;
-            } else {
-                status.innerText = '❌ ' + (data.error || 'Failed');
-            }
-        } catch (err) {
-            status.innerText = '❌ Verification failed.';
-        }
-    }
-</script>
-
-</body>
-</html>`);
-});app.use((req, res) => { res.status(404).send('🚫 Endpoint not found.'); });
-
-app.listen(PORT, () => console.log(✅ Server running at http://localhost:${PORT}));
-
-                                
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
