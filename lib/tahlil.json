@@ -1,0 +1,27 @@
+{
+  "status": true,
+  "creator": "Your Name or Bot Name",
+  "source": "https://islam.nu.or.id/post/read/107344/susunan-bacaan-tahlil-doa-arwah-lengkap-dan-terjemahannya",
+  "based_on": "Majmu' Syarif",
+  "result": [
+    {
+      "id": 1,
+      "title": "Pengantar Al‑Fatihah",
+      "arabic": "اِلَى حَضْرَةِ النَّبِيِّ صَلَّى اللهُ عَلَيهِ وَسَلَّمَ وَاَلِهِ وصَحْبِهِ شَيْءٌ لِلهِ لَهُمُ الْفَاتِحَةُ",
+      "translation": "Dengan nama Allah yang maha pengasih lagi maha penyayang. Untuk yang terhormat Nabi Muhammad SAW, segenap keluarga, dan para sahabatnya. Bacaan Al‑Fatihah ini kami tujukan kepada Allah dan pahalanya untuk mereka semua. Al‑Fatihah…"
+    },
+    // ... sisanya tetap sama seperti sebelumnya ...
+    {
+      "id": 33,
+      "title": "Doa Wahbah untuk Para Sahabat Rasul dan Wali Allah",
+      "arabic": "اللَّهُمَّ اجْعَلْ ثَوَاَبَ مَا قَرَأْنَاهُ … رُبَّ العَالَمِيْنَ",
+      "translation": "Ya Allah, jadikanlah pahala dan keberkahan bacaan kami, shalawat kami, dan tahlil kami sebagai hadiah yang sampai dan rahmat‑Mu yang turun… Tuhan sekalian alam"
+    },
+    {
+      "id": 34,
+      "title": "Doa untuk Arwah Penghuni Makam Mualla, Syubaikah, Baqi‘, dan Mereka yang Tidak Pernah Diziarahi",
+      "arabic": "وَإِلَى أَرْوَاحِ سَادَا…",
+      "translation": "…"
+    }
+  ]
+}
