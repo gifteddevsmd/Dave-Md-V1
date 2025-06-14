@@ -1,77 +1,81 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
 const pino = require('pino');
-const chalk = require('chalk');
-const { makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, Browsers } = require('@whiskeysockets/baileys');
 const readline = require('readline');
+const fs = require('fs');
+const chalk = require('chalk');
+const { makeWASocket, useMultiFileAuthState, Browsers, jidNormalizedUser } = require('@whiskeysockets/baileys');
 
 const app = express();
-const port = process.env.PORT || 3000;
-const sessionDir = path.join(__dirname, 'session');
-fs.mkdirSync(sessionDir, { recursive: true });
-
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+const SESSION_DIR = './session';
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const question = (text) => new Promise((resolve) => rl.question(text, resolve));
+
+const sendSessionId = async (sock, phone) => {
+  try {
+    const credsPath = `${SESSION_DIR}/creds.json`;
+    if (!fs.existsSync(credsPath)) return;
+
+    const sessionId = fs.readFileSync(credsPath).toString('base64');
+    const msg = `🎉 *Dave-Md-V1*\n\n✅ Your bot is now paired successfully!\n\n🔐 *Session ID:*\n\`gifteddave~${sessionId}\`\n\nUse this in your bot dashboard.`;
+
+    const jid = jidNormalizedUser(phone);
+    await sock.sendMessage(jid, { text: msg });
+    console.log(chalk.green(`✅ Session ID sent to ${phone}`));
+  } catch (err) {
+    console.error(`❌ Failed to send session ID to ${phone}:`, err);
+  }
+};
+
 app.get('/', (req, res) => {
   res.send(`
-    <h2>Dave-Md-V1 WhatsApp Pairing</h2>
-    <form method="POST" action="/pair">
-      <label>Enter WhatsApp number with country code (e.g., 254712345678):</label><br>
-      <input type="text" name="number" required />
-      <br><br>
-      <button type="submit">Generate Pairing Code</button>
-    </form>
+    <html>
+      <head><title>Dave-Md-V1 Pairing</title></head>
+      <body>
+        <h2>🔗 Enter your phone number to receive WhatsApp pairing code:</h2>
+        <form action="/pair" method="POST">
+          <input name="phone" placeholder="e.g., 254712345678" required/>
+          <button type="submit">Send Pair Code</button>
+        </form>
+      </body>
+    </html>
   `);
 });
 
 app.post('/pair', async (req, res) => {
-  const phoneNumber = req.body.number?.replace(/[^0-9]/g, '');
-  if (!phoneNumber || phoneNumber.length < 10) {
-    return res.send('❌ Invalid phone number. Please include country code.');
-  }
+  const number = req.body.phone?.trim();
+  if (!number) return res.status(400).send('❌ Phone number is required.');
+
+  const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+  const sock = makeWASocket({
+    logger: pino({ level: 'silent' }),
+    auth: state,
+    printQRInTerminal: false,
+    browser: Browsers.macOS('Safari'),
+  });
+
+  sock.ev.on('creds.update', saveCreds);
+
+  sock.ev.on('connection.update', async (update) => {
+    const { connection, lastDisconnect } = update;
+    if (connection === 'open') {
+      console.log(chalk.green('✅ Paired! Sending session ID...'));
+      await sendSessionId(sock, number);
+    }
+  });
 
   try {
-    const { state, saveCreds } = await useMultiFileAuthState(`./session/${phoneNumber}`);
-    const sock = makeWASocket({
-      auth: {
-        creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }))
-      },
-      logger: pino({ level: 'silent' }),
-      printQRInTerminal: false,
-      browser: Browsers.macOS('Safari'),
-    });
-
-    if (!sock.authState.creds.registered) {
-      const code = await sock.requestPairingCode(phoneNumber);
-      const sessionId = `gifteddave~${Buffer.from(phoneNumber).toString('base64')}`;
-      
-      console.log(chalk.green(`✅ Sent pairing code to ${phoneNumber}`));
-      res.send(`
-        <h3>✅ Pairing code sent to WhatsApp: ${phoneNumber}</h3>
-        <p>👉 Go to your WhatsApp and enter the code that appears.</p>
-        <p>📩 Once linked, you'll receive your session ID via WhatsApp.</p>
-      `);
-
-      setTimeout(async () => {
-        const message = `✅ Welcome to Dave-Md-V1 Bot!\n\nHere is your session ID:\n\n${sessionId}\n\nSave this ID securely.`;
-        await sock.sendMessage(`${phoneNumber}@s.whatsapp.net`, { text: message });
-        console.log(`✅ Session ID sent to ${phoneNumber}`);
-        await saveCreds();
-      }, 10000); // wait 10 seconds for user to pair
-
-    } else {
-      res.send('⚠️ This number is already registered!');
-    }
-
+    const code = await sock.requestPairingCode(number);
+    res.send(`<h3>✅ Pairing code sent to <strong>${number}</strong> via WhatsApp:<br><code>${code}</code></h3>`);
   } catch (err) {
-    console.error('Error:', err);
-    res.send('❌ Error generating pairing code. Make sure your number is correct and try again.');
+    console.error(err);
+    res.status(500).send('❌ Failed to send pairing code.');
   }
 });
 
-app.listen(port, () => {
-  console.log(chalk.cyan(`🚀 Dave-Md-V1 Pairing Server running at http://localhost:${port}`));
+const PORT = process.env.PORT || 5716;
+app.listen(PORT, () => {
+  console.log(`🚀 Dave-Md-V1 Pairing Server running at http://localhost:${PORT}`);
 });
