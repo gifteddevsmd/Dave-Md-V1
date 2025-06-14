@@ -1,23 +1,34 @@
+# Base image
 FROM node:lts
 
-# Install dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg imagemagick webp && apt-get clean
+# Install system dependencies (ffmpeg, imagemagick, webp)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ffmpeg \
+  imagemagick \
+  webp \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install && npm cache clean --force
+# Install app dependencies
+RUN npm install
+
+# Install PM2 globally
 RUN npm install -g pm2
 
-# Copy application code
+# Copy rest of the application code
 COPY . .
 
-# Set environment
-ENV NODE_ENV production
+# Set environment variable
+ENV NODE_ENV=production
 
-# Run command
-CMD ["npm", "run", "start"]
+# Expose port if needed (optional)
+EXPOSE 3000
+
+# Start the bot using PM2 (safe for containers)
+CMD ["pm2-runtime", "start", "index.js"]
