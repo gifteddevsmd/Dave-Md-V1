@@ -1,18 +1,16 @@
 {
   "name": "dave-md-v1-pairing",
   "version": "1.0.0",
-  "description": "Phone number based WhatsApp pairing backend (no QR)",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "engines": {
-    "node": "18.x"
+    "node": ">=16.0.0"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "randomstring": "^1.2.2",
-    "puppeteer": "^22.7.0",
-    "whatsapp-web.js": "^1.23.0"
+    "whatsapp-web.js": "^1.23.0",
+    "randomstring": "^1.2.2"
   }
 }
