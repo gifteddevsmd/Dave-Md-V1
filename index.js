@@ -1,198 +1,77 @@
-require('./settings');
+const express = require('express');
 const fs = require('fs');
-const pino = require('pino');
-const { color } = require('./lib/color');
 const path = require('path');
-const axios = require('axios');
+const pino = require('pino');
 const chalk = require('chalk');
+const { makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, Browsers } = require('@whiskeysockets/baileys');
 const readline = require('readline');
-const { File } = require('megajs');
-const FileType = require('file-type');
-const { exec } = require('child_process');
-const { Boom } = require('@hapi/boom');
-const NodeCache = require('node-cache');
-const PhoneNumber = require('awesome-phonenumber');
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    Browsers,
-    DisconnectReason,
-    makeCacheableSignalKeyStore,
-    proto,
-    getAggregateVotesInPollMessage,
-    jidNormalizedUser
-} = require('@whiskeysockets/baileys');
-const { makeInMemoryStore } = require('@rodrigogs/baileys-store');
 
-let phoneNumber = "254104260236";
-const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code");
-const useMobile = process.argv.includes("--mobile");
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
-const question = (text) => new Promise((resolve) => rl.question(text, resolve));
-let owner = JSON.parse(fs.readFileSync('./src/owner.json'));
-
-global.api = (name, path = '/', query = {}, apikeyqueryname) =>
-    (name in global.APIs ? global.APIs[name] : name) +
-    path +
-    (query || apikeyqueryname
-        ? '?' +
-          new URLSearchParams(
-              Object.entries({
-                  ...query,
-                  ...(apikeyqueryname
-                      ? {
-                            [apikeyqueryname]: global.APIKeys[
-                                name in global.APIs ? global.APIs[name] : name
-                            ]
-                        }
-                      : {})
-              })
-          )
-        : '');
-
-const DataBase = require('./src/database');
-const database = new DataBase();
-
-(async () => {
-    const loadData = await database.read();
-    if (loadData && Object.keys(loadData).length === 0) {
-        global.db = {
-            sticker: {},
-            users: {},
-            groups: {},
-            database: {},
-            settings: {},
-            others: {},
-            ...(loadData || {})
-        };
-        await database.write(global.db);
-    } else {
-        global.db = loadData;
-    }
-
-    setInterval(async () => {
-        if (global.db) await database.write(global.db);
-    }, 30000);
-})();
-
-const {
-    GroupUpdate,
-    GroupParticipantsUpdate,
-    MessagesUpsert,
-    Solving
-} = require('./src/message');
-const {
-    imageToWebp,
-    videoToWebp,
-    writeExifImg,
-    writeExifVid
-} = require('./lib/exif');
-const {
-    isUrl,
-    generateMessageTag,
-    getBuffer,
-    getSizeMedia,
-    fetchJson,
-    await,
-    sleep
-} = require('./lib/function');
-
+const app = express();
+const port = process.env.PORT || 3000;
 const sessionDir = path.join(__dirname, 'session');
-const credsPath = path.join(sessionDir, 'creds.json');
+fs.mkdirSync(sessionDir, { recursive: true });
 
-async function sessionLoader() {
-    try {
-        await fs.promises.mkdir(sessionDir, { recursive: true });
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-        if (!fs.existsSync(credsPath)) {
-            if (!global.SESSION_ID) {
-                return console.log(
-                    color(`Session id and creds.json not found!!\n\nWait to enter your number`, 'red')
-                );
-            }
+app.get('/', (req, res) => {
+  res.send(`
+    <h2>Dave-Md-V1 WhatsApp Pairing</h2>
+    <form method="POST" action="/pair">
+      <label>Enter WhatsApp number with country code (e.g., 254712345678):</label><br>
+      <input type="text" name="number" required />
+      <br><br>
+      <button type="submit">Generate Pairing Code</button>
+    </form>
+  `);
+});
 
-            const sessionData = global.SESSION_ID.split('gifteddave~')[1];
-            const filer = File.fromURL(`https://mega.nz/file/${sessionData}`);
+app.post('/pair', async (req, res) => {
+  const phoneNumber = req.body.number?.replace(/[^0-9]/g, '');
+  if (!phoneNumber || phoneNumber.length < 10) {
+    return res.send('❌ Invalid phone number. Please include country code.');
+  }
 
-            await new Promise((resolve, reject) => {
-                filer.download((err, data) => {
-                    if (err) reject(err);
-                    resolve(data);
-                });
-            }).then(async (data) => {
-                await fs.promises.writeFile(credsPath, data);
-                console.log(color(`Session downloaded successfully, proceeding to start...`, 'green'));
-                await startDaveMd();
-            });
-        }
-    } catch (error) {
-        console.error('Error retrieving session:', error);
-    }
-}
-
-console.log(
-    chalk.cyan(`
-██╗  ██╗██╗      ██████╗██╗ ██████╗ ███╗   ██╗
-██╔╝ ██╔╝██║     ██╔════╝██║██╔═══██╗████╗  ██║
-██║ ██║ ██║     ██║     ██║██║   ██║██╔██╗ ██║
-██║ ██║ ██║     ██║     ██║██║   ██║██║╚██╗██║
-╚██╗██╔╝╚════██║ ╚██████╗██║╚██████╔╝██║ ╚████║
- ╚═╝╚═╝      ╚═╝  ╚═════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝`)
-);
-
-console.log(
-    chalk.white.bold(`${chalk.gray.bold("📃  Information :")}
-✉️  Script : Dave-Md-V1
-✉️  Author : Gifted Dave
-✉️  Gmail : comradeanasafa@gmail.com
-✉️  Instagram : https://www.instagram.com/_gifted_dave
-
-${chalk.green.bold("Ｐｏｗｅｒｅｄ Ｂｙ ＤＡＶＥ ＭＤ ＢＯＴＺ")}\n`)
-);
-
-async function startDaveMd() {
-    let version = [2, 3000, 1015901307];
-    const { state, saveCreds } = await useMultiFileAuthState(`./session`);
-    const msgRetryCounterCache = new NodeCache();
-
-    const DaveMd = makeWASocket({
-        logger: pino({ level: 'silent' }),
-        printQRInTerminal: !pairingCode,
-        browser: Browsers.windows('Firefox'),
-        auth: {
-            creds: state.creds,
-            keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }))
-        },
-        version,
-        markOnlineOnConnect: true,
-        generateHighQualityLinkPreview: true,
-        getMessage: async (key) => {
-            let jid = jidNormalizedUser(key.remoteJid);
-            let msg = await store.loadMessage(jid, key.id);
-            return msg?.message || '';
-        },
-        msgRetryCounterCache,
-        defaultQueryTimeoutMs: undefined
+  try {
+    const { state, saveCreds } = await useMultiFileAuthState(`./session/${phoneNumber}`);
+    const sock = makeWASocket({
+      auth: {
+        creds: state.creds,
+        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' }))
+      },
+      logger: pino({ level: 'silent' }),
+      printQRInTerminal: false,
+      browser: Browsers.macOS('Safari'),
     });
 
-    store.bind(DaveMd.ev);
+    if (!sock.authState.creds.registered) {
+      const code = await sock.requestPairingCode(phoneNumber);
+      const sessionId = `gifteddave~${Buffer.from(phoneNumber).toString('base64')}`;
+      
+      console.log(chalk.green(`✅ Sent pairing code to ${phoneNumber}`));
+      res.send(`
+        <h3>✅ Pairing code sent to WhatsApp: ${phoneNumber}</h3>
+        <p>👉 Go to your WhatsApp and enter the code that appears.</p>
+        <p>📩 Once linked, you'll receive your session ID via WhatsApp.</p>
+      `);
 
-    if (pairingCode && !DaveMd.authState.creds.registered) {
-        if (useMobile) throw new Error('Cannot use pairing code with mobile API');
-        let phone = await question('Please enter your number starting with country code like 254:\n');
-        phone = phone.trim();
+      setTimeout(async () => {
+        const message = `✅ Welcome to Dave-Md-V1 Bot!\n\nHere is your session ID:\n\n${sessionId}\n\nSave this ID securely.`;
+        await sock.sendMessage(`${phoneNumber}@s.whatsapp.net`, { text: message });
+        console.log(`✅ Session ID sent to ${phoneNumber}`);
+        await saveCreds();
+      }, 10000); // wait 10 seconds for user to pair
 
-        setTimeout(async () => {
-            const code = await DaveMd.requestPairingCode(phone);
-            console.log(chalk.green(`Pairing code sent to WhatsApp: ${code}`));
-        }, 3000);
+    } else {
+      res.send('⚠️ This number is already registered!');
     }
-}
 
-// Boot decision: load session or start directly
-if (fs.existsSync(credsPath)) {
-    startDaveMd();
-} else {
-    sessionLoader();
-}
+  } catch (err) {
+    console.error('Error:', err);
+    res.send('❌ Error generating pairing code. Make sure your number is correct and try again.');
+  }
+});
+
+app.listen(port, () => {
+  console.log(chalk.cyan(`🚀 Dave-Md-V1 Pairing Server running at http://localhost:${port}`));
+});
