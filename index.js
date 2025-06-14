@@ -20,8 +20,9 @@ app.post('/pair', async (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const now = Date.now();
 
-    if (!req.body.number) {
-        return res.status(400).json({ error: 'Phone number required' });
+    const number = req.body.number;
+    if (!number || !/^[0-9]{10,15}$/.test(number)) {
+        return res.status(400).json({ error: 'Valid phone number required.' });
     }
 
     if (lastPairTime[ip] && now - lastPairTime[ip] < 10000) {
@@ -29,7 +30,6 @@ app.post('/pair', async (req, res) => {
     }
     lastPairTime[ip] = now;
 
-    const number = req.body.number;
     const code = `gifteddave~${randomstring.generate(6).toLowerCase()}`;
     const filepath = path.join(codesPath, `${number}.json`);
 
@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
         input, button { padding: 12px; margin-top: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
         button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; }
         button:hover { background-color: #218838; }
-        #pairCode { margin-top: 20px; font-size: 18px; color: #333; word-break: break-all; }
+        #pairCode { margin-top: 20px; font-size: 18px; color: #333; word-break: break-word; }
     </style>
 </head>
 <body>
@@ -79,7 +79,7 @@ app.get('/', (req, res) => {
                 const data = await res.json();
                 if (res.ok) {
                     status.innerText = '✅ Code generated successfully!';
-                    pairCode.innerText = 'Your Pairing Code: ' + data.code;
+                    pairCode.innerHTML = '<b>Your Pairing Code:</b><br>' + data.code;
                 } else {
                     status.innerText = '❌ Error: ' + (data.error || 'Unknown error.');
                 }
@@ -92,7 +92,7 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-// Fallback for other routes
+// Fallback for unmatched routes
 app.use((req, res) => {
     res.status(404).send('❌ Endpoint not found.');
 });
