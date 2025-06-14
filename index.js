@@ -1,4 +1,5 @@
 const express = require('express');
+const { Client, LocalAuth } = require('whatsapp-web.js');
 const randomstring = require('randomstring');
 const fs = require('fs');
 const path = require('path');
@@ -8,95 +9,72 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 3000;
-const codesPath = path.join(__dirname, 'codes');
+const codesDir = path.join(__dirname, 'codes');
+const sessionsDir = path.join(__dirname, 'sessions');
 
-if (!fs.existsSync(codesPath)) {
-    fs.mkdirSync(codesPath);
-}
+if (!fs.existsSync(codesDir)) fs.mkdirSync(codesDir);
+if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir);
 
-let lastPairTime = {};
+let pairing = {}; // { ip: timestamp/recent pairing }
 
 app.post('/pair', async (req, res) => {
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const now = Date.now();
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const now = Date.now();
 
-    const number = req.body.number;
-    if (!number || !/^[0-9]{10,15}$/.test(number)) {
-        return res.status(400).json({ error: 'Valid phone number required.' });
-    }
+  if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
+  if (pairing[ip] && now - pairing[ip] < 10000) {
+    return res.status(429).json({ error: 'Please wait 10 seconds.' });
+  }
+  pairing[ip] = now;
 
-    if (lastPairTime[ip] && now - lastPairTime[ip] < 10000) {
-        return res.status(429).json({ error: 'Please wait 10 seconds before trying again.' });
-    }
-    lastPairTime[ip] = now;
+  const number = req.body.number.replace(/\D/g, '');
+  const code = `gifteddave~${randomstring.generate(6).toLowerCase()}`;
+  const codePath = path.join(codesDir, code + '.json');
 
-    const code = `gifteddave~${randomstring.generate(6).toLowerCase()}`;
-    const filepath = path.join(codesPath, `${number}.json`);
+  // Save pairing record
+  fs.writeFileSync(codePath, JSON.stringify({ number, code }));
 
-    fs.writeFileSync(filepath, JSON.stringify({ number, code }));
+  // Initialize WhatsApp session
+  const client = new Client({
+    authStrategy: new LocalAuth({ clientId: code }),
+    puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+  });
 
-    return res.json({ code });
+  client.on('ready', () => {
+    console.log(`✅ WhatsApp ready for ${number} with code ${code}`);
+    fs.writeFileSync(
+      path.join(sessionsDir, code + '.json'),
+      JSON.stringify({ number, code })
+    );
+    client.logout();
+  });
+
+  client.on('auth_failure', err => {
+    console.error('❌ Auth failure', err);
+    try { fs.unlinkSync(codePath); } catch {}
+  });
+
+  client.initialize();
+
+  return res.json({ code });
 });
 
 app.get('/', (req, res) => {
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Pair with Dave-Md-V1</title>
-    <style>
-        body { font-family: Arial; background: #f0f8ff; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        form, .result { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        input, button { padding: 12px; margin-top: 10px; width: 100%; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        button { background-color: #28a745; color: white; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        #pairCode { margin-top: 20px; font-size: 18px; color: #333; word-break: break-word; }
-    </style>
-</head>
-<body>
-    <form id="pairForm" onsubmit="submitForm(event)">
-        <h2>Pair Your Number</h2>
-        <input type="text" id="number" placeholder="e.g. 254712345678" required />
-        <button type="submit">Get Code</button>
-        <p id="status"></p>
-        <div id="pairCode"></div>
+  res.send(`
+    <form onsubmit="e=>{}">
+      <input id="num" placeholder="254712345678"/>
+      <button onclick="pair()">Get Code</button>
+      <div id="out"></div>
     </form>
-
     <script>
-        async function submitForm(e) {
-            e.preventDefault();
-            const number = document.getElementById('number').value;
-            const status = document.getElementById('status');
-            const pairCode = document.getElementById('pairCode');
-            status.innerText = '⏳ Generating code...';
-            pairCode.innerText = '';
-            try {
-                const res = await fetch('/pair', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ number })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    status.innerText = '✅ Code generated successfully!';
-                    pairCode.innerHTML = '<b>Your Pairing Code:</b><br>' + data.code;
-                } else {
-                    status.innerText = '❌ Error: ' + (data.error || 'Unknown error.');
-                }
-            } catch (err) {
-                status.innerText = '❌ Request failed.';
-            }
-        }
+      async function pair(){
+        const num = document.getElementById('num').value;
+        const resp = await fetch('/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:num})});
+        const d = await resp.json();
+        document.getElementById('out').innerText = resp.ok ? "Your code: " + d.code : d.error;
+      }
     </script>
-</body>
-</html>`);
+  `);
 });
 
-// Fallback for unmatched routes
-app.use((req, res) => {
-    res.status(404).send('❌ Endpoint not found.');
-});
-
-app.listen(PORT, () => {
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`✅ Listening on port ${PORT}`));
