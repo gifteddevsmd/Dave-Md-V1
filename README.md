@@ -69,20 +69,20 @@ If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your a
 
 ## 🛠️ `Installation Methods`  
 1. Fork the repo → ![Fork repo badge](https://img.shields.io/badge/Fork%20Repo-black?style=for-the-badge&logo=github&logoColor=white)  
-2. Get SESSION_ID (SERVER 1) → ![Session badge](https://img.shields.io/badge/Session_id-black?style=for-the-badge&logo=scan)  
-3. Get CREDS.JSON (SERVER 2) → ![Session2 badge](https://img.shields.io/badge/Session_id_2-black?style=for-the-badge&logo=scan)  
+2. Get SESSION_ID → [🎯 Click to Pair](https://gifteddavesessions-22e90aefabe8.herokuapp.com)  
+3. Get CREDS.JSON → (Use paired session or generate via dashboard)  
 
 ---
 
 ## 🚀 `Deploy Dave-Md-V1`  
-### ☁️ Deploy to Render  
-[![Deploy to Render](https://img.shields.io/badge/Deploy_to-Render-black?style=for-the-badge&logo=render)](https://render.com)  
+### ☁️ Deploy to Heroku  
+[![Deploy to Heroku](https://img.shields.io/badge/Deploy_to-Heroku-black?style=for-the-badge&logo=heroku)](https://heroku.com/deploy?template=https://github.com/gifteddaves/Dave-Md-V1)
 
 ### ☁️ Deploy to Railway  
-[![Deploy to Railway](https://img.shields.io/badge/Deploy_to-Railway-black?style=for-the-badge&logo=railway)](https://railway.app)  
+[![Deploy to Railway](https://img.shields.io/badge/Deploy_to-Railway-black?style=for-the-badge&logo=railway)](https://railway.app)
 
-### ☁️ Deploy to Heroku  
-[![Deploy to Heroku](https://img.shields.io/badge/Deploy_to-Heroku-black?style=for-the-badge&logo=heroku)](https://heroku.com)
+### ☁️ Deploy to Render  
+[![Deploy to Render](https://img.shields.io/badge/Deploy_to-Render-black?style=for-the-badge&logo=render)](https://render.com)  
 
 ---
 
