@@ -1,1 +1,1 @@
-worker: pm2-runtime index.js
+worker: pm2-runtime start index.js
