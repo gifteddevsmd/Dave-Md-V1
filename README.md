@@ -71,7 +71,7 @@ If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your a
 ## 🛠️ `Installation Methods`  
 1. Fork the repo →  
 <p align="center">
-  <img src="https://img.shields.io/badge/Fork%20Repo-black?style=for-the-badge&logo=github&logoColor=white">
+  [![Fork Repo](https://img.shields.io/badge/Fork%20My%20Repo-Click%20Here-green?style=for-the-badge&logo=github)](https://github.com/gifteddaves/Dave-Md-V1/fork)
 </p>
 
 2. Get SESSION_ID by clicking the pairing link below:
