@@ -1,16 +1,31 @@
 {
-  "name": "dave-md-v1-pairing",
+  "name": "dave-md-session-server",
   "version": "1.0.0",
+  "description": "Number-based WhatsApp pairing system for Dave-Md-V1 bot (no QR, Heroku-ready)",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "whatsapp-web.js": "^1.23.0",
-    "randomstring": "^1.2.2"
-  }
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "puppeteer": "^22.4.0",
+    "randomstring": "^1.2.2",
+    "whatsapp-web.js": "^1.23.0"
+  },
+  "keywords": [
+    "whatsapp",
+    "web.js",
+    "pairing",
+    "session",
+    "no-qr",
+    "heroku",
+    "dave-md-v1"
+  ],
+  "author": "Gifted Dave",
+  "license": "MIT"
 }
