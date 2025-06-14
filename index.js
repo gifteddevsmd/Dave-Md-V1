@@ -1,5 +1,6 @@
 const express = require('express');
-const { Client } = require('whatsapp-web.js');
+const { Client, LocalAuth } = require('whatsapp-web.js');
+const puppeteer = require('puppeteer');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const randomstring = require('randomstring');
@@ -25,9 +26,9 @@ app.post('/pair', async (req, res) => {
 
     if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
 
-    // Throttle pairing per IP (10 seconds)
+    // Limit retry to 10 seconds per IP
     if (lastPairTime[ip] && now - lastPairTime[ip] < 10000) {
-        return res.status(429).json({ error: 'Wait 10 seconds before pairing again.' });
+        return res.status(429).json({ error: 'Wait 10 seconds before trying again.' });
     }
     lastPairTime[ip] = now;
 
@@ -41,39 +42,38 @@ app.post('/pair', async (req, res) => {
     const sessionId = `gifteddave~${randomstring.generate(7).toLowerCase()}`;
     const sessionFile = path.join(sessionsPath, `${sessionId}.json`);
 
+    // Destroy previous client if any
     if (client) {
         try {
             await client.destroy();
         } catch (e) {
-            console.log('Could not destroy previous client.');
+            console.log('⚠️ Previous client could not be destroyed.');
         }
     }
 
     try {
         client = new Client({
-            authStrategy: {
-                async saveCreds() {},
-                async loadCreds() { return null; }
-            },
+            authStrategy: new LocalAuth({ clientId: sessionId }),
             puppeteer: {
                 headless: true,
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                executablePath: puppeteer.executablePath(), // 👈 Required for Heroku
             }
         });
 
         client.on('qr', qr => {
-            console.log(`[QR for ${number}]:`);
+            console.log(`\n[QR for ${number}]\n`);
             qrcode.generate(qr, { small: true });
         });
 
         client.on('ready', () => {
-            console.log(`[✅ Paired: ${number}]`);
+            console.log(`✅ Paired: ${number}`);
             fs.writeFileSync(sessionFile, JSON.stringify({ number, sessionId }));
             pairingInProgress = false;
         });
 
         client.on('disconnected', reason => {
-            console.log(`[❌ Disconnected: ${reason}]`);
+            console.log(`❌ Disconnected: ${reason}`);
             pairingInProgress = false;
         });
 
@@ -83,10 +83,11 @@ app.post('/pair', async (req, res) => {
             message: '📲 Pairing started. Scan QR from server logs.',
             sessionId
         });
+
     } catch (error) {
         console.error('❌ Pairing Error:', error);
         pairingInProgress = false;
-        return res.status(500).json({ error: 'Internal error during pairing. Check logs.' });
+        return res.status(500).json({ error: 'Internal error during pairing. Check server logs.' });
     }
 });
 
