@@ -1,5 +1,6 @@
 # ℹ️ **This Project is open for contributions**  
-## `I myself no more working on this project but you developers can run it and make it more cool.` <br> `Just Do Pull Request and you can even change README.md File`
+## `I myself no more working on this project but you developers can run it and make it more cool.`  
+### `Just Do Pull Request and you can even change README.md File`
 
 <a><img src='https://i.imgur.com/LyHic3i.gif'/></a><a><img src='https://i.imgur.com/LyHic3i.gif'/></a>
 
@@ -68,21 +69,45 @@ If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your a
 ---
 
 ## 🛠️ `Installation Methods`  
-1. Fork the repo → ![Fork repo badge](https://img.shields.io/badge/Fork%20Repo-black?style=for-the-badge&logo=github&logoColor=white)  
-2. Get SESSION_ID → [🎯 Click to Pair](https://gifteddavesessions-22e90aefabe8.herokuapp.com)  
-3. Get CREDS.JSON → (Use paired session or generate via dashboard)  
+1. Fork the repo →  
+<p align="center">
+  <img src="https://img.shields.io/badge/Fork%20Repo-black?style=for-the-badge&logo=github&logoColor=white">
+</p>
+
+2. Get SESSION_ID by clicking the pairing link below:
+
+<p align="center">
+  <a href="https://gifteddavesessions-22e90aefabe8.herokuapp.com" target="_blank">
+    <img src="https://img.shields.io/badge/Click%20Here%20to%20Pair%20Session-FF0000?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Pair Session">
+  </a>
+</p>
+
+3. Get CREDS.JSON → (Use paired session or generate via dashboard)
 
 ---
 
 ## 🚀 `Deploy Dave-Md-V1`  
-### ☁️ Deploy to Heroku  
-[![Deploy to Heroku](https://img.shields.io/badge/Deploy_to-Heroku-black?style=for-the-badge&logo=heroku)](https://heroku.com/deploy?template=https://github.com/gifteddaves/Dave-Md-V1)
-
-### ☁️ Deploy to Railway  
-[![Deploy to Railway](https://img.shields.io/badge/Deploy_to-Railway-black?style=for-the-badge&logo=railway)](https://railway.app)
 
 ### ☁️ Deploy to Render  
-[![Deploy to Render](https://img.shields.io/badge/Deploy_to-Render-black?style=for-the-badge&logo=render)](https://render.com)  
+<p align="center">
+  <a href="https://render.com" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy_to-Render-7289da?style=for-the-badge&logo=render&logoColor=white">
+  </a>
+</p>
+
+### ☁️ Deploy to Railway  
+<p align="center">
+  <a href="https://railway.app" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy_to-Railway-0b0b0b?style=for-the-badge&logo=railway&logoColor=white">
+  </a>
+</p>
+
+### ☁️ Deploy to Heroku  
+<p align="center">
+  <a href="https://heroku.com/deploy?template=https://github.com/gifteddaves/Dave-Md-V1" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy_to-Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white">
+  </a>
+</p>
 
 ---
 
