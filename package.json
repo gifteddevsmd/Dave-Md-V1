@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node index.js"
+    "start": "pm2-runtime index.js"
   },
   "keywords": [
     "Whatsapp Bot By Gifted Dave"
@@ -23,13 +23,14 @@
     "awesome-phonenumber": "^4.4.0",
     "axios": "*",
     "chalk": "^4.1.2",
-    "figlet": "^1.5.2",
+    "figlet": "^1.5.2",   
     "cheerio": "^1.0.0-rc.10",
     "cookie": "^0.5.0",
     "express": "*",
     "filesize": "^10.0.7",
     "file-type": "^16.5.3",
     "fluent-ffmpeg": "^2.1.2",
+    "fluent-ffmpeg-7": "^2.1.5",
     "fs-extra": "^11.1.0",
     "google-tts-api": "^2.0.2",
     "got": "^13.0.0",
@@ -54,7 +55,9 @@
     "os": "^0.1.2",
     "parse-ms": "^3.0.0",
     "pdfkit": "^0.13.0",
+    "perf_hooks": "^0.0.1",
     "pino": "^8.8.0",
+    "process": "^0.11.10",
     "qrcode-terminal": "^0.12.0",
     "qs": "^6.11.0",
     "request": "^2.88.2",
@@ -65,9 +68,11 @@
     "youtube-yts": "^2.0.0",
     "youtubedl-core": "^4.11.5",
     "ytdl-core": "^4.11.5",
-    "yt-search": "^2.10.4"
+    "yt-search": "^2.10.4",
+    "pm2": "^5.3.0"
   },
-  "engines": {
-    "node": ">=18"
+  "directories": {
+    "lib": "lib",
+    "src": "src"
   }
 }
