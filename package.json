@@ -1,29 +1,17 @@
 {
   "name": "dave-md-v1-pairing",
   "version": "1.0.0",
-  "description": "Phone-number-based WhatsApp bot pairing system (No QR) for Dave-Md-V1",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=16.x"
   },
-  "keywords": [
-    "whatsapp-web.js",
-    "dave-md-v1",
-    "session pairing",
-    "no qr",
-    "whatsapp bot",
-    "phone pairing"
-  ],
-  "author": "Gifted Dave",
-  "license": "MIT",
   "dependencies": {
-    "express": "^4.18.4",
-    "pino": "^8.0.0",
+    "@whiskeysockets/baileys": "^6.7.0",
     "chalk": "^5.3.0",
-    "readline": "^1.3.0",
-    "@whiskeysockets/baileys": "^6.7.0"
+    "express": "^4.18.2",
+    "pino": "^8.17.0"
   }
 }
