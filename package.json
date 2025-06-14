@@ -1,16 +1,17 @@
 {
-  "name": "gifteddave-sessions",
+  "name": "dave-md-v1-pairing-backend",
   "version": "1.0.0",
+  "description": "Phone-number-based WhatsApp pairing backend for Dave-Md-V1",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "dependencies": {
     "express": "^4.18.2",
-    "whatsapp-web.js": "^1.23.0",
-    "randomstring": "^1.2.2"
-  },
-  "engines": {
-    "node": ">=16.x"
+    "randomstring": "^1.2.2",
+    "whatsapp-web.js": "^1.23.0"
   }
 }
