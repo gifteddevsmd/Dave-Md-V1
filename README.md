@@ -1,4 +1,4 @@
-# ℹ️ **This Project is open for contributions**  
+# ℹ️ **This Project is open for contributions**
 ## `I myself no more working on this project but you developers can run it and make it more cool.`  
 ### `Just Do Pull Request and you can even change README.md File`
 
@@ -11,18 +11,18 @@
     <img alt="Dave‑Md‑V1" height="600" width="600" src="https://files.catbox.moe/wlblpx.jpg">
     <h1 align="center">Dave-Md-V1</h1>
   </a>
-</p>   
+</p>
 
 <p align="center">
   <a href="https://github.com/gifteddaves"><img title="Author" src="https://img.shields.io/badge/CREATOR-GIFTED%20DAVE%20SER-black.svg?style=for-the-badge&logo=github"></a>
 </p>
 
-### ℹ️ **About Dave‑Md‑V1**  
+### ℹ️ **About Dave‑Md‑V1**
 Dave‑Md‑V1 is a Cool Multi‑Device WhatsApp bot developed by **Gifted Dave**. It offers a wide range of extraordinary features, making it an advanced and user‑friendly bot for various purposes.
 
 <p align="center"><img src="https://profile-counter.glitch.me/{Dave‑Md‑V1}/count.svg" alt="GIFTED DAVE :: Visitor's Count" /></p>
 
-### 📊 **Bot Statistics**  
+### 📊 **Bot Statistics**
 <p align="center">
 <a href="https://github.com/gifteddaves/followers"><img title="Followers" src="https://img.shields.io/github/followers/gifteddaves?color=red&style=flat-square"></a>
 <a href="https://github.com/gifteddaves/Dave-Md-V1/stargazers/"><img title="Stars" src="https://img.shields.io/github/stars/gifteddaves/Dave-Md-V1?color=blue&style=flat-square"></a>
@@ -40,18 +40,21 @@ Dave‑Md‑V1 is a Cool Multi‑Device WhatsApp bot developed by **Gifted Dave*
 
 ---
 
-## ⭐ `Star This Repo`  
-If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your appreciation. Thanks to all contributors! 🚀
+## ⭐ `Star & Fork This Repo`
+If you find Dave‑Md‑V1 helpful, please consider giving it a star ⭐ and fork to support development!
 
-## 💲 `Donate Me`  
+[![Star Repo](https://img.shields.io/github/stars/gifteddaves/Dave-Md-V1?style=for-the-badge&logo=github)](https://github.com/gifteddaves/Dave-Md-V1/stargazers)  
+[![Fork My Repo](https://img.shields.io/badge/Fork%20My%20Repo-Click%20Here-green?style=for-the-badge&logo=github)](https://github.com/gifteddaves/Dave-Md-V1/fork)
+
+## 💲 `Donate Me`
 - [`Buy ME A Coffee ☕`](https://i.ibb.co/SBXWb1R/donate.jpg)  
-<p align="left">Scan QR code above to support via Buy Me A Coffee…</p>  
+  <p align="left">Scan QR code above to support via Buy Me A Coffee…</p>  
 - [`Support Me On Patreon ☕`](https://www.patreon.com/ahmmikun/membership)  
-<p align="left">Click link to donate…</p>
+  <p align="left">Click link to donate…</p>
 
 ---
 
-## 🚀 `Bot Features`  
+## 🚀 `Bot Features`
 | Feature | Description | Available | Version |
 |--------|-------------|:---------:|:-------:|
 | Full Button Bot | Click buttons to control operations | ✅ | 3.0 |
@@ -68,13 +71,16 @@ If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your a
 
 ---
 
-## 🛠️ `Installation Methods`  
-1. Fork the repo →  
+## 🛠️ `Installation Methods`
+1. Fork the repo ➝  
+
 <p align="center">
-  [![Fork Repo](https://img.shields.io/badge/Fork%20My%20Repo-Click%20Here-green?style=for-the-badge&logo=github)](https://github.com/gifteddaves/Dave-Md-V1/fork)
+  <a href="https://github.com/gifteddaves/Dave-Md-V1/fork" target="_blank">
+    <img src="https://img.shields.io/badge/Fork%20My%20Repo-Click%20Here-green?style=for-the-badge&logo=github">
+  </a>
 </p>
 
-2. Get SESSION_ID by clicking the pairing link below:
+2. Get SESSION_ID via pairing:
 
 <p align="center">
   <a href="https://gifteddavesessions-22e90aefabe8.herokuapp.com" target="_blank">
@@ -82,36 +88,36 @@ If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your a
   </a>
 </p>
 
-3. Get CREDS.JSON → (Use paired session or generate via dashboard)
+3. Get CREDS.JSON ➝ Generated automatically in your session folder after pairing
 
 ---
 
-## 🚀 `Deploy Dave-Md-V1`  
+## 🚀 `Deploy Dave-Md-V1`
 
-### ☁️ Deploy to Render  
-<p align="center">
-  <a href="https://render.com" target="_blank">
-    <img src="https://img.shields.io/badge/Deploy_to-Render-7289da?style=for-the-badge&logo=render&logoColor=white">
-  </a>
-</p>
-
-### ☁️ Deploy to Railway  
-<p align="center">
-  <a href="https://railway.app" target="_blank">
-    <img src="https://img.shields.io/badge/Deploy_to-Railway-0b0b0b?style=for-the-badge&logo=railway&logoColor=white">
-  </a>
-</p>
-
-### ☁️ Deploy to Heroku  
+### ☁️ Deploy to Heroku
 <p align="center">
   <a href="https://heroku.com/deploy?template=https://github.com/gifteddaves/Dave-Md-V1" target="_blank">
     <img src="https://img.shields.io/badge/Deploy_to-Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white">
   </a>
 </p>
 
+### ☁️ Deploy to Railway
+<p align="center">
+  <a href="https://railway.app" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy_to-Railway-0b0b0b?style=for-the-badge&logo=railway&logoColor=white">
+  </a>
+</p>
+
+### ☁️ Deploy to Render
+<p align="center">
+  <a href="https://render.com" target="_blank">
+    <img src="https://img.shields.io/badge/Deploy_to-Render-7289da?style=for-the-badge&logo=render&logoColor=white">
+  </a>
+</p>
+
 ---
 
-## 🔗 Contact & Community  
+## 🔗 Contact & Community
 - 👤 Owner: [Gifted Dave](https://wa.me/254104260236)  
 - 💬 WhatsApp Group: [Join](https://chat.whatsapp.com/CaPeB0sVRTrL3aG6asYeAC)  
 - 📢 WhatsApp Channel: [Follow](https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k)  
@@ -121,5 +127,5 @@ If you find Dave‑Md‑V1 helpful, consider giving it a star ⭐ to show your a
 
 ---
 
-## 📜 License  
+## 📜 License
 Licensed under the [MIT License](./LICENSE) © 2025 gifteddaves
