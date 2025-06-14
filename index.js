@@ -1,5 +1,5 @@
 const express = require('express');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const fs = require('fs');
 const randomstring = require('randomstring');
@@ -25,9 +25,9 @@ app.post('/pair', async (req, res) => {
 
     if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
 
-    // Throttle pairing per IP
-    if (lastPairTime[ip] && now - lastPairTime[ip] < 60000) {
-        return res.status(429).json({ error: 'Wait 1 minute before pairing again.' });
+    // Throttle pairing per IP (10 seconds)
+    if (lastPairTime[ip] && now - lastPairTime[ip] < 10000) {
+        return res.status(429).json({ error: 'Wait 10 seconds before pairing again.' });
     }
     lastPairTime[ip] = now;
 
@@ -41,7 +41,6 @@ app.post('/pair', async (req, res) => {
     const sessionId = `gifteddave~${randomstring.generate(7).toLowerCase()}`;
     const sessionFile = path.join(sessionsPath, `${sessionId}.json`);
 
-    // Clean up existing client
     if (client) {
         try {
             await client.destroy();
@@ -52,7 +51,10 @@ app.post('/pair', async (req, res) => {
 
     try {
         client = new Client({
-            authStrategy: new LocalAuth({ clientId: sessionId }),
+            authStrategy: {
+                async saveCreds() {},
+                async loadCreds() { return null; }
+            },
             puppeteer: {
                 headless: true,
                 args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -60,7 +62,7 @@ app.post('/pair', async (req, res) => {
         });
 
         client.on('qr', qr => {
-            console.log(`[QR for ${number}]`);
+            console.log(`[QR for ${number}]:`);
             qrcode.generate(qr, { small: true });
         });
 
