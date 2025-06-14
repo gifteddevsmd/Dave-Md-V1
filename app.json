@@ -1,0 +1,77 @@
+
+{
+  "name": "Dave-Md-V1",
+  "description": "Multi-Device WhatsApp Bot Using Baileys Library",
+  "repository": "https://github.com/gifteddaves/Dave-Md-V1",
+  "logo": "https://i.imgur.com/LyHic3i.gif",
+  "keywords": ["multi-device", "whatsapp", "bot", "baileys"],
+  "stack": "container",
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "Standard-2X"
+    }
+  },
+  "env": {
+    "SESSION_ID": {
+      "description": "Enter session id here; must start with gifteddave~",
+      "required": true
+    },
+    "BOT_NAME": {
+      "value": "Dave-Md-V1",
+      "description": "Bot Name",
+      "required": true
+    },
+    "OWNER_NUMBER": {
+      "value": "254104260236",
+      "description": "Owner Number",
+      "required": true
+    },
+    "OWNER_NAME": {
+      "value": "Gifted Dave",
+      "description": "Owner Name",
+      "required": true
+    },
+    "PACK_NAME": {
+      "value": "Dave-Md Stickers",
+      "description": "Sticker Package Name",
+      "required": false
+    },
+    "AUTHOR_NAME": {
+      "value": "Made by Gifted Dave",
+      "description": "Sticker Author Name",
+      "required": false
+    },
+    "XPREFIX": {
+      "value": ".",
+      "description": "Bot Prefix",
+      "required": true
+    },
+    "PREMIUM_NUMBER": {
+      "value": "254104260236",
+      "description": "Premium User IDs (comma-separated)",
+      "required": true
+    },
+    "MENU_TYPE": {
+      "value": "v2",
+      "description": "Menu Type (v1/v2)",
+      "required": false
+    },
+    "AUTOBLOCK_COUNTRYCODE": {
+      "value": "212",
+      "description": "Auto-Block Country Code",
+      "required": false
+    },
+    "ANTIFOREIGN_COUNTRYCODE": {
+      "value": "91",
+      "description": "Anti-Foreign Number Country Code",
+      "required": false
+    }
+  },
+  "buildpacks": [
+    { "url": "heroku/nodejs" },
+    { "url": "https://github.com/DuckyTeam/heroku-buildpack-imagemagick.git" },
+    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest" },
+    { "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git" }
+  ]
+}
