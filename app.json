@@ -1,10 +1,9 @@
-
 {
   "name": "Dave-Md-V1",
-  "description": "Multi-Device WhatsApp Bot Using Baileys Library",
+  "description": "Multi-Device WhatsApp Bot Using Baileys (Code Pairing Enabled)",
   "repository": "https://github.com/gifteddaves/Dave-Md-V1",
   "logo": "https://i.imgur.com/LyHic3i.gif",
-  "keywords": ["multi-device", "whatsapp", "bot", "baileys"],
+  "keywords": ["multi-device", "whatsapp", "bot", "baileys", "code-pairing"],
   "stack": "container",
   "formation": {
     "worker": {
@@ -14,8 +13,8 @@
   },
   "env": {
     "SESSION_ID": {
-      "description": "Enter session id here; must start with gifteddave~",
-      "required": true
+      "description": "Enter session id (optional if using code-pairing)",
+      "required": false
     },
     "BOT_NAME": {
       "value": "Dave-Md-V1",
@@ -49,22 +48,37 @@
     },
     "PREMIUM_NUMBER": {
       "value": "254104260236",
-      "description": "Premium User IDs (comma-separated)",
+      "description": "Premium User Numbers (comma-separated)",
       "required": true
     },
     "MENU_TYPE": {
       "value": "v2",
-      "description": "Menu Type (v1/v2)",
+      "description": "Menu Type (v1, v2)",
       "required": false
     },
     "AUTOBLOCK_COUNTRYCODE": {
       "value": "212",
-      "description": "Auto-Block Country Code",
+      "description": "Auto-block numbers from this country code",
       "required": false
     },
     "ANTIFOREIGN_COUNTRYCODE": {
       "value": "91",
-      "description": "Anti-Foreign Number Country Code",
+      "description": "Block numbers not from this country",
+      "required": false
+    },
+    "GITHUB_USERNAME": {
+      "value": "gifteddaves",
+      "description": "GitHub Username",
+      "required": false
+    },
+    "WHATSAPP_CHANNEL": {
+      "value": "https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k",
+      "description": "WhatsApp Channel Link",
+      "required": false
+    },
+    "WEBSITE_URL": {
+      "value": "https://youtube.com/@gifteddave",
+      "description": "Your personal website or YouTube",
       "required": false
     }
   },
