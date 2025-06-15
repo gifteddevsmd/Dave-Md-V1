@@ -1,148 +1,132 @@
+// File: api/index.js
+
 const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
+const randomstring = require('randomstring');
 const fs = require('fs');
 const path = require('path');
-const randomstring = require('randomstring');
 
-const sessionsPath = path.join(__dirname, 'sessions');
-if (!fs.existsSync(sessionsPath)) fs.mkdirSync(sessionsPath);
+const sessionsDir = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir);
 
-let lastRequests = {};
+const rateLimit = {}; // IP rate limiter
 
 module.exports = async (req, res) => {
-  if (req.method === 'GET') {
-    res.setHeader('Content-Type', 'text/html');
-    return res.end(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Dave-Md-V1 Pair</title>
-        <style>
-          body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #000000, #1f1f1f);
-            color: white;
-            text-align: center;
-          }
-          h1 {
-            font-size: 2.5em;
-            margin-bottom: 0.5em;
-            animation: pulse 2s infinite;
-          }
-          input {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 6px;
-            border: none;
-            width: 250px;
-            margin-bottom: 10px;
-          }
-          button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            background-color: #00ff99;
-            color: black;
-            cursor: pointer;
-          }
-          #output {
-            margin-top: 20px;
-            font-size: 18px;
-            white-space: pre-wrap;
-          }
-          .copy {
-            margin-top: 10px;
-            padding: 5px 10px;
-            font-size: 14px;
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-          }
-          @keyframes pulse {
-            0%, 100% { color: #fff; }
-            50% { color: #00ff99; }
-          }
-        </style>
-      </head>
-      <body>
-        <h1>Dave-Md-V1 Code Pairing</h1>
-        <input id="num" placeholder="Enter WhatsApp number e.g. 254712345678" />
-        <button onclick="pair()">Get Pair Code</button>
-        <div id="output"></div>
-        <script>
-          async function pair() {
-            const num = document.getElementById('num').value;
-            const res = await fetch('/api/index.js', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ number: num })
-            });
-            const data = await res.json();
-            if (res.ok) {
-              document.getElementById('output').innerHTML = 
-                '✅ Your Code: <b>' + data.code + '</b><br>' +
-                '📥 Session URL: <a href="' + data.sessionUrl + '" target="_blank">' + data.sessionUrl + '</a><br>' +
-                '<button class="copy" onclick="copyCode(\\'' + data.code + '\\')">Copy Code</button>';
-            } else {
-              document.getElementById('output').innerText = '❌ ' + data.error;
-            }
-          }
-          function copyCode(code) {
-            navigator.clipboard.writeText(code);
-            alert('Code copied: ' + code);
-          }
-        </script>
-      </body>
-      </html>
-    `);
-  }
-
   if (req.method === 'POST') {
-    try {
-      const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-      const { number } = req.body;
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
 
-      if (!number) return res.status(400).json({ error: 'Phone number required' });
-      if (lastRequests[ip] && Date.now() - lastRequests[ip] < 10000) {
-        return res.status(429).json({ error: 'Wait 10 seconds before trying again' });
-      }
-      lastRequests[ip] = Date.now();
-
-      const cleanNumber = number.replace(/\D/g, '');
-      const code = randomstring.generate({ length: 6, charset: 'alphanumeric' }).toUpperCase();
-      const filename = `${code}.json`;
-      const filepath = path.join(sessionsPath, filename);
-
-      const { state, saveState } = useSingleFileAuthState(filepath);
-      const sock = makeWASocket({ auth: state });
-
-      sock.ev.on('connection.update', (update) => {
-        const { connection } = update;
-        if (connection === 'open') {
-          console.log('✅ Connected: ' + number);
-        }
-      });
-
-      sock.ev.on('creds.update', saveState);
-
-      return res.status(200).json({
-        code,
-        sessionUrl: `https://${req.headers.host}/api/sessions/${filename}`
-      });
-
-    } catch (err) {
-      console.error('❌ Pairing error:', err);
-      return res.status(500).json({ error: 'Server error' });
+    if (rateLimit[ip] && Date.now() - rateLimit[ip] < 10_000) {
+      return res.status(429).json({ error: 'Too fast. Wait 10 seconds.' });
     }
+    rateLimit[ip] = Date.now();
+
+    const number = req.body.number.replace(/\D/g, '');
+    const code = randomstring.generate({ length: 6, charset: 'alphanumeric' }).toUpperCase();
+    const sessionFile = `${code}.json`;
+    const sessionPath = path.join(sessionsDir, sessionFile);
+
+    const { state, saveState } = useSingleFileAuthState(sessionPath);
+    const sock = makeWASocket({ auth: state });
+
+    sock.ev.on('connection.update', (update) => {
+      const { connection, lastDisconnect } = update;
+      if (connection === 'open') console.log(`✅ Connected: ${number}`);
+      else if (update.qr) console.log(`⚠️ Scan QR for ${number} (suppressed for code-mode)`);
+    });
+
+    sock.ev.on('creds.update', saveState);
+
+    return res.status(200).json({
+      code,
+      sessionUrl: `/api/sessions/${sessionFile}`
+    });
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  // GET: Show frontend UI
+  res.setHeader('Content-Type', 'text/html');
+  return res.end(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Dave-Md Pairing</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+          color: white;
+        }
+        .box {
+          background: rgba(0,0,0,0.6);
+          padding: 2em;
+          border-radius: 20px;
+          text-align: center;
+          animation: fadeIn 1s ease-in-out;
+        }
+        h1 {
+          font-size: 2em;
+          margin-bottom: 10px;
+        }
+        input {
+          padding: 10px;
+          border-radius: 10px;
+          border: none;
+          width: 220px;
+          text-align: center;
+          font-size: 16px;
+        }
+        button {
+          margin-top: 1em;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 10px;
+          background: #ffd700;
+          color: black;
+          cursor: pointer;
+          font-weight: bold;
+        }
+        #output {
+          margin-top: 15px;
+          font-size: 1.1em;
+          word-break: break-word;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="box">
+        <h1>🔐 Dave-Md-V1 Pairing</h1>
+        <input id="number" placeholder="e.g. 254712345678" /><br/>
+        <button onclick="getCode()">Get Pair Code</button>
+        <div id="output"></div>
+      </div>
+      <script>
+        async function getCode() {
+          const number = document.getElementById('number').value;
+          const res = await fetch(window.location.href, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ number })
+          });
+          const out = document.getElementById('output');
+          const data = await res.json();
+          if (res.ok) {
+            out.innerHTML = \`✅ Pair Code: <b>\${data.code}</b><br>
+            <button onclick="navigator.clipboard.writeText('\${data.code}')">📋 Copy Code</button><br>
+            <small>Session File: <a href="\${data.sessionUrl}" target="_blank">Download</a></small>\`;
+          } else {
+            out.innerText = '❌ ' + data.error;
+          }
+        }
+      </script>
+    </body>
+    </html>
+  `);
 };
