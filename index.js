@@ -1,80 +1,75 @@
 const express = require('express');
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const randomstring = require('randomstring');
+const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
 const fs = require('fs');
 const path = require('path');
-
+const randomstring = require('randomstring');
 const app = express();
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 3000;
-const codesDir = path.join(__dirname, 'codes');
-const sessionsDir = path.join(__dirname, 'sessions');
+const sessionsPath = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionsPath)) fs.mkdirSync(sessionsPath);
 
-if (!fs.existsSync(codesDir)) fs.mkdirSync(codesDir);
-if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir);
-
-let pairing = {}; // { ip: timestamp/recent pairing }
+let lastRequests = {};
 
 app.post('/pair', async (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const now = Date.now();
-
   if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
-  if (pairing[ip] && now - pairing[ip] < 10000) {
+
+  if (lastRequests[ip] && Date.now() - lastRequests[ip] < 10000) {
     return res.status(429).json({ error: 'Please wait 10 seconds.' });
   }
-  pairing[ip] = now;
+  lastRequests[ip] = Date.now();
 
   const number = req.body.number.replace(/\D/g, '');
-  const code = `gifteddave~${randomstring.generate(6).toLowerCase()}`;
-  const codePath = path.join(codesDir, code + '.json');
+  const code = randomstring.generate({ length: 6, charset: 'alphanumeric' }).toUpperCase();
+  const filename = `${code}.json`;
+  const filepath = path.join(sessionsPath, filename);
 
-  // Save pairing record
-  fs.writeFileSync(codePath, JSON.stringify({ number, code }));
+  const { state, saveState } = useSingleFileAuthState(filepath);
+  const sock = makeWASocket({ auth: state });
 
-  // Initialize WhatsApp session
-  const client = new Client({
-    authStrategy: new LocalAuth({ clientId: code }),
-    puppeteer: { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }
+  sock.ev.on('connection.update', (update) => {
+    const { connection, qr } = update;
+
+    if (connection === 'open') {
+      console.log(`✅ WhatsApp connected: ${number}`);
+    } else if (qr) {
+      console.log(`⚠️ Scan QR for ${number} (not shown, since using code only mode)`);
+    }
   });
 
-  client.on('ready', () => {
-    console.log(`✅ WhatsApp ready for ${number} with code ${code}`);
-    fs.writeFileSync(
-      path.join(sessionsDir, code + '.json'),
-      JSON.stringify({ number, code })
-    );
-    client.logout();
-  });
+  sock.ev.on('creds.update', saveState);
 
-  client.on('auth_failure', err => {
-    console.error('❌ Auth failure', err);
-    try { fs.unlinkSync(codePath); } catch {}
-  });
-
-  client.initialize();
-
-  return res.json({ code });
+  return res.json({ code, sessionFile: `/sessions/${filename}` });
 });
+
+app.use('/sessions', express.static(sessionsPath));
 
 app.get('/', (req, res) => {
   res.send(`
     <form onsubmit="e=>{}">
-      <input id="num" placeholder="254712345678"/>
+      <input id="num" placeholder="254712345678" />
       <button onclick="pair()">Get Code</button>
       <div id="out"></div>
     </form>
     <script>
       async function pair(){
         const num = document.getElementById('num').value;
-        const resp = await fetch('/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({number:num})});
-        const d = await resp.json();
-        document.getElementById('out').innerText = resp.ok ? "Your code: " + d.code : d.error;
+        const res = await fetch('/pair', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ number: num })
+        });
+        const data = await res.json();
+        document.getElementById('out').innerText = res.ok ? 
+          '✅ Your code: ' + data.code + '\\nDownload Session: ' + window.location.origin + data.sessionFile 
+          : '❌ ' + data.error;
       }
     </script>
   `);
 });
 
-app.listen(PORT, () => console.log(`✅ Listening on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
