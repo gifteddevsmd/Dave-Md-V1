@@ -1,18 +1,18 @@
 //══════════════════════════════════════════════════════════════════════════════════════════════════════//
 //                                                                                                      //
-//                                      𝗗𝗔𝗩𝗘-𝗠𝗗-𝗩𝟭  𝐁𝐎𝐓                                                 //
+//                                     𝗗𝗔𝗩𝗘-𝗠𝗗-𝗩𝟭  𝐁𝐎𝐓                                                  //
 //                                                                                                      //
-//                                         Ｖ：1.0                                                       //
+//                                          Ｖ：1.0                                                      //
 //                                                                                                      //
-//               ██╗  ██╗██╗     ██╗ ██████╗ ██████╗ ███╗   ██╗      ██╗   ██╗██╗  ██╗                  //              
+//               ██╗  ██╗██╗     ██╗ ██████╗ ██████╗ ███╗   ██╗      ██╗   ██╗██╗  ██╗                  //
 //                ██╗██╔╝██║     ██║██╔════╝██╔═══██╗████╗  ██║      ██║   ██║██║  ██║                  //
-//                ╚███╔╝ ██║     ██║██║     ██║   ██║██╔██╗ ██║█████╗██║   ██║███████║                  // 
-//                ██╔██╗ ██║     ██║██║     ██║   ██║██║╚██╗██║╚════╝╚██╗ ██╔╝╚════██║                  // 
+//                ╚███╔╝ ██║     ██║██║     ██║   ██║██╔██╗ ██║█████╗██║   ██║███████║                  //
+//                ██╔██╗ ██║     ██║██║     ██║   ██║██║╚██╗██║╚════╝╚██╗ ██╔╝╚════██║                  //
 //               ██╔╝ ██╗███████╗██║╚██████╗╚██████╔╝██║ ╚████║       ╚████╔╝      ██║                  //
-//                ═╝  ╚═╝╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝        ╚═══╝       ╚═╝                  // 
-//                                                                                                      //
+//                ═╝  ╚═╝╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝        ╚═══╝       ╚═╝                  //
 //                                                                                                      //
 //══════════════════════════════════════════════════════════════════════════════════════════════════════//
+
 //*
 //  * @project_name : Dave-Md-V1
 //  * @author : gifteddaves
@@ -20,81 +20,69 @@
 //  * @whatsapp : https://wa.me/254104260236
 //  * @telegram : https://t.me/Digladoo
 //  * @instagram : https://www.instagram.com/_gifted_dave/profilecard/?igsh=MWFjZHdmcm4zMGkzNw==
-//  * @description : Dave-Md-V1, A Multi-functional WhatsApp User Bot based on XLICON logic.
-//*
-//*
-//base by DGXeon, original logic by salmanytofficial (XLICON)
-//reupload? recode? copy code? Give credit!
+//  * @description : Multi-functional WhatsApp User Bot based on Baileys & XLICON logic.
 //*
 
-// Import required modules and settings
 require('../settings');
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
 const chalk = require('chalk');
-const FileType = require('file-type');
 const moment = require('moment-timezone');
+const { proto, getContentType, downloadContentFromMessage } = require('@whiskeysockets/baileys');
 const PhoneNumber = require('awesome-phonenumber');
+const { getBuffer, isUrl } = require('../lib/function');
 const prem = require('./premium');
 
-const {
-  writeExif,
-  imageToWebp,
-  videoToWebp,
-  writeExifImg,
-  writeExifVid
-} = require('../lib/exif');
-
-const {
-  isUrl,
-  getGroupAdmins,
-  generateMessageTag,
-  getBuffer,
-  getSizeMedia,
-  fetchJson,
-  sleep,
-  getTypeUrlMedia
-} = require('../lib/function');
-
-const {
-  jidNormalizedUser,
-  proto,
-  getBinaryNodeChildren,
-  generateWAMessageContent,
-  generateForwardMessageContent,
-  prepareWAMessageMedia,
-  delay,
-  areJidsSameUser,
-  extractMessageContent,
-  generateMessageID,
-  downloadContentFromMessage,
-  generateWAMessageFromContent,
-  jidDecode,
-  generateWAMessage,
-  toBuffer,
-  getContentType,
-  getDevice
-} = require('@whiskeysockets/baileys');
-
-// Core functions for group and message event handling
-async function GroupUpdate(DaveBot, update) {
-  // ... (unchanged logic)
+// Handler for group metadata changes
+async function GroupUpdate(conn, update) {
+  // Future support for group name/photo/description changes
+  console.log(chalk.yellow('[GROUP UPDATE]:'), update);
 }
 
-async function GroupParticipantsUpdate(DaveBot, update) {
-  // ... (unchanged logic)
+// Handler for participant events (add, remove, promote, demote)
+async function GroupParticipantsUpdate(conn, update) {
+  console.log(chalk.blueBright('[PARTICIPANT UPDATE]:'), update);
+  // You can customize messages for welcome, goodbye, promote, demote
 }
 
-async function MessagesUpsert(DaveBot, message, store) {
-  // ... (unchanged logic)
+// Handler for new incoming messages
+async function MessagesUpsert(conn, m, store) {
+  try {
+    if (!m.type || m.type !== 'notify') return;
+    for (const msg of m.messages) {
+      if (!msg.message || msg.key && msg.key.remoteJid === 'status@broadcast') continue;
+
+      msg.message = msg.message || {};
+      const contentType = getContentType(msg.message);
+      const message = msg.message[contentType];
+
+      // Logging messages for debugging
+      console.log(chalk.green('[MESSAGE RECEIVED]:'), msg.key.remoteJid, contentType);
+
+      // Check for commands and process
+      const from = msg.key.remoteJid;
+      const isGroup = from.endsWith('@g.us');
+      const sender = isGroup ? msg.key.participant : msg.key.remoteJid;
+
+      // Example: simple ping command
+      if (contentType === 'conversation' || contentType === 'extendedTextMessage') {
+        const text = contentType === 'conversation' ? message : message.text;
+        if (text.toLowerCase() === 'ping') {
+          await conn.sendMessage(from, { text: '🏓 Pong! Dave-Md-V1 is alive.' }, { quoted: msg });
+        }
+      }
+    }
+  } catch (err) {
+    console.error(chalk.red('[ERROR IN MESSAGE HANDLER]'), err);
+  }
 }
 
-async function Solving(DaveBot, store) {
-  // ... (unchanged logic)
+// Optional startup or scheduled logic
+async function Solving(conn, store) {
+  console.log(chalk.green('[DAVE-MD] Bot started and monitoring messages...'));
 }
 
-// Export core functions
+// Exporting all core handlers
 module.exports = {
   GroupUpdate,
   GroupParticipantsUpdate,
