@@ -1,126 +1,35 @@
-const express = require('express');
-const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
-const fs = require('fs');
-const path = require('path');
-const randomstring = require('randomstring');
-const app = express();
+// ============================ // 📦 Dave-Md-V1 Pairing Backend // ✅ Fixed for Heroku + Vercel/Render support // 🔁 Phone-number-based session pairing // ============================
 
-const PORT = process.env.PORT || 3000;
-const sessionsPath = path.join(__dirname, 'sessions');
-if (!fs.existsSync(sessionsPath)) fs.mkdirSync(sessionsPath);
+const express = require('express'); const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys'); const fs = require('fs'); const path = require('path'); const randomstring = require('randomstring'); const app = express();
+
+// Config const PORT = process.env.PORT || 3000; const sessionsPath = path.join(__dirname, 'sessions'); if (!fs.existsSync(sessionsPath)) fs.mkdirSync(sessionsPath);
 
 let lastRequests = {};
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware app.use(express.json()); app.use(express.urlencoded({ extended: true })); app.use('/sessions', express.static(sessionsPath));
 
-app.post('/pair', async (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
+// HTML Frontend app.get('/', (req, res) => { res.send(<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Dave-Md-V1 Pairing</title> <style> body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; } h1 { animation: slideIn 1.2s ease-in-out; margin-bottom: 20px; } form { background: rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.3); } input { padding: 10px; border: none; border-radius: 5px; margin-right: 10px; width: 200px; } button { padding: 10px 15px; border: none; background: #00c6ff; color: white; font-weight: bold; border-radius: 5px; cursor: pointer; } #out { margin-top: 20px; font-size: 1.1em; } @keyframes slideIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } } </style> </head> <body> <h1>🔐 Dave-Md-V1 Pairing</h1> <form onsubmit="event.preventDefault(); pair();"> <input id="num" placeholder="254712345678" required /> <button type="submit">Get Code</button> <div id="out"></div> </form> <script> async function pair() { const num = document.getElementById('num').value; const res = await fetch('/pair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: num }) }); const data = await res.json(); document.getElementById('out').innerText = res.ok ?✅ Your code: ${data.code}\n📂 Download session: ${window.location.origin + data.sessionFile}:❌ Error: ${data.error}; } </script> </body> </html> ); });
 
-  if (lastRequests[ip] && Date.now() - lastRequests[ip] < 10000)
-    return res.status(429).json({ error: 'Please wait 10 seconds.' });
+// Pair Endpoint app.post('/pair', async (req, res) => { const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress; if (!req.body.number) return res.status(400).json({ error: 'Phone number required' });
 
-  lastRequests[ip] = Date.now();
+if (lastRequests[ip] && Date.now() - lastRequests[ip] < 10000) { return res.status(429).json({ error: 'Please wait 10 seconds before retrying.' }); } lastRequests[ip] = Date.now();
 
-  const number = req.body.number.replace(/\D/g, '');
-  const code = `DAVE-${randomstring.generate({ length: 4, charset: 'alphanumeric' })}`.toUpperCase();
-  const filename = `${code}.json`;
-  const filepath = path.join(sessionsPath, filename);
+try { const number = req.body.number.replace(/\D/g, ''); const code = randomstring.generate({ length: 6, charset: 'alphanumeric' }).toUpperCase(); const filename = ${code}.json; const filepath = path.join(sessionsPath, filename);
 
-  const { state, saveState } = useSingleFileAuthState(filepath);
-  const sock = makeWASocket({ auth: state });
+const { state, saveState } = useSingleFileAuthState(filepath);
+const sock = makeWASocket({ auth: state });
 
-  sock.ev.on('connection.update', ({ connection }) => {
-    if (connection === 'open') {
-      console.log(`✅ Connected: ${number}`);
-    }
-  });
-
-  sock.ev.on('creds.update', saveState);
-
-  res.json({
-    code,
-    sessionFile: `/sessions/${filename}`,
-    download: `${req.protocol}://${req.get('host')}/sessions/${filename}`
-  });
+sock.ev.on('connection.update', (update) => {
+  const { connection } = update;
+  if (connection === 'open') console.log(`✅ Connected for ${number}`);
 });
 
-app.use('/sessions', express.static(sessionsPath));
+sock.ev.on('creds.update', saveState);
 
-app.get('/', (req, res) => {
-  res.send(`
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <title>Dave-Md-V1 Pair</title>
-    <style>
-      body {
-        margin: 0;
-        font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(135deg, #2c3e50, #3498db);
-        color: white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        flex-direction: column;
-      }
-      h1 {
-        animation: pulse 2s infinite;
-        font-size: 2.5em;
-      }
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-      input, button {
-        padding: 12px;
-        font-size: 1em;
-        border: none;
-        border-radius: 8px;
-        margin: 10px 0;
-      }
-      button {
-        background-color: #e67e22;
-        color: white;
-        cursor: pointer;
-        transition: 0.3s;
-      }
-      button:hover {
-        background-color: #d35400;
-      }
-      #out {
-        margin-top: 15px;
-        white-space: pre-wrap;
-        text-align: center;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>🚀 Dave-Md-V1 Bot Pairing</h1>
-    <input id="num" placeholder="Enter your phone e.g. 254712345678" />
-    <button onclick="pair()">Generate Pair Code</button>
-    <div id="out"></div>
+return res.json({ code, sessionFile: `/sessions/${filename}` });
 
-    <script>
-      async function pair(){
-        const num = document.getElementById('num').value;
-        const res = await fetch('/pair', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ number: num })
-        });
-        const data = await res.json();
-        document.getElementById('out').innerText = res.ok ? 
-          '✅ Pair Code: ' + data.code + '\\nDownload Session: ' + data.download 
-          : '❌ ' + data.error;
-      }
-    </script>
-  </body>
-  </html>
-  `);
-});
+} catch (err) { console.error('❌ Pairing failed:', err); return res.status(500).json({ error: 'Pairing failed. Please try again.' }); } });
 
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+// Start server app.listen(PORT, () => console.log(✅ Pairing server running on http://localhost:${PORT}));
+
+  
