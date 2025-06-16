@@ -1,11 +1,12 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/pair.js", "use": "@vercel/node" }
+    { "src": "api/pair.js", "use": "@vercel/node" },
+    { "src": "public/index.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/sessions/(.*)", "dest": "/api/sessions/$1" },
-    { "src": "/api/(.*)", "dest": "/api/pair.js" },
-    { "src": "/", "dest": "/index.html" }
+    { "src": "/pair", "dest": "api/pair.js" },
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ]
 }
