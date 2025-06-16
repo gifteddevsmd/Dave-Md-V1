@@ -6,9 +6,9 @@
   "keywords": ["multi-device", "whatsapp", "bot", "baileys", "code-pairing"],
   "stack": "container",
   "formation": {
-    "worker": {
+    "web": {
       "quantity": 1,
-      "size": "Standard-2X"
+      "size": "standard-1x"
     }
   },
   "env": {
@@ -82,10 +82,6 @@
       "required": false
     }
   },
-  "buildpacks": [
-    { "url": "heroku/nodejs" },
-    { "url": "https://github.com/DuckyTeam/heroku-buildpack-imagemagick.git" },
-    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest" },
-    { "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git" }
-  ]
+  "buildpacks": [],
+  "image": "web"
 }
