@@ -3,113 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dave-Md-V1 Pairing</title>
+  <title>Dave-Md-V1 - Pairing</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #1f2937, #4b5563);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      animation: fadeIn 1.5s ease-in-out;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 2rem;
+      background: #f0f0f0;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 0.5em;
-      color: #38bdf8;
-    }
-
-    form {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 2em;
+    .container {
+      background: #fff;
       border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      padding: 2rem;
+      max-width: 400px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-
     input, button {
       padding: 10px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
       width: 100%;
-      font-size: 1em;
+      margin-top: 10px;
+      font-size: 1rem;
     }
-
-    input {
-      background-color: #e5e7eb;
-      color: black;
-    }
-
-    button {
-      background-color: #38bdf8;
-      color: white;
-      cursor: pointer;
-    }
-
-    .code-display {
-      margin-top: 1em;
-      background: #111827;
-      padding: 10px;
+    .result {
+      margin-top: 15px;
+      background: #e7ffe7;
+      padding: 1rem;
       border-radius: 8px;
-      font-family: monospace;
-      word-wrap: break-word;
+      word-break: break-word;
     }
-
     .copy-btn {
-      background: #10b981;
-      margin-top: 0.5em;
+      background: #333;
+      color: #fff;
+      cursor: pointer;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Dave-Md-V1 Pairing</h1>
-  <form id="pairForm">
-    <input type="text" id="number" placeholder="Enter WhatsApp Number (e.g., 2547...)" required />
-    <button type="submit">Generate Code</button>
-  </form>
-  <div class="code-display" id="result" style="display: none;">
-    <span id="codeOutput"></span>
-    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+  <div class="container">
+    <h2>📱 Pair WhatsApp to Dave-Md-V1</h2>
+    <form id="pairForm">
+      <input type="text" id="number" placeholder="Enter WhatsApp Number" required />
+      <button type="submit">Generate Code</button>
+    </form>
+    <div id="result" class="result" style="display:none;">
+      <p><strong>Session ID:</strong> <span id="sessionIdText"></span></p>
+      <button class="copy-btn" onclick="copyToClipboard()">Copy Session ID</button>
+    </div>
   </div>
 
   <script>
     const form = document.getElementById('pairForm');
-    const result = document.getElementById('result');
-    const codeOutput = document.getElementById('codeOutput');
+    const resultDiv = document.getElementById('result');
+    const sessionIdText = document.getElementById('sessionIdText');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const number = document.getElementById('number').value;
-
-      const res = await fetch("https://your-railway-app.up.railway.app/pair", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch('/api/pair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ number })
       });
-
       const data = await res.json();
-      if (data && data.code) {
-        codeOutput.innerText = data.code;
-        result.style.display = 'block';
+      if (data.sessionId) {
+        sessionIdText.textContent = data.sessionId;
+        resultDiv.style.display = 'block';
       } else {
-        codeOutput.innerText = "❌ Failed to generate code.";
-        result.style.display = 'block';
+        alert('Error: ' + (data.error || 'Unknown error'));
       }
     });
 
-    function copyCode() {
-      navigator.clipboard.writeText(codeOutput.innerText).then(() => {
-        alert("Code copied to clipboard ✅");
+    function copyToClipboard() {
+      navigator.clipboard.writeText(sessionIdText.textContent).then(() => {
+        alert('Copied to clipboard!');
       });
     }
   </script>
