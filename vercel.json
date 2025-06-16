@@ -1,10 +1,12 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/index.js", "use": "@vercel/node" }
+    { "src": "api/pair.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/api/sessions/(.*)", "dest": "/api/sessions/$1" },
-    { "src": "/(.*)", "dest": "/api/index.js" }
+    { "src": "/api/pair", "dest": "/api/pair.js" },
+    { "src": "/sessions/(.*)", "dest": "/sessions/$1" },
+    { "src": "/", "dest": "/index.html" }
   ]
 }
