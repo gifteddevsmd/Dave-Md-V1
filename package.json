@@ -1,16 +1,20 @@
 {
-  "name": "davesessions",
+  "name": "dave-md-pairing-backend",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "commonjs",
+  "description": "Dave-Md-V1 phone-number-based WhatsApp bot pairing backend",
+  "main": "pair.js",
   "scripts": {
-    "start": "node start.js"
-  },
-  "dependencies": {
-    "@whiskeysockets/baileys": "github:WhiskeySockets/Baileys",
-    "express": "^4.18.2"
+    "start": "node pair.js"
   },
   "engines": {
-    "node": "18.x"
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2",
+    "mongoose": "^7.5.0",
+    "uuid": "^9.0.0"
   }
 }
