@@ -1,20 +1,16 @@
 {
-  "name": "dave-md-project",
+  "name": "davesessions",
   "version": "1.0.0",
-  "description": "Dave-Md-V1 WhatsApp bot and Vercel pairing backend",
-  "type": "module",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
-    "vercel-dev": "vercel dev"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "start": "node start.js"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^6.6.0",
-    "@hapi/boom": "^11.1.4",
-    "express": "^4.19.2",
-    "randomstring": "^1.2.2"
+    "@whiskeysockets/baileys": "^6.6.2",
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
