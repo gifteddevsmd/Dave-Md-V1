@@ -3,82 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dave-Md-V1 - Pairing</title>
+  <title>Dave-Md-V1 Code Pairing</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
       text-align: center;
-      padding: 2rem;
-      background: #f0f0f0;
-    }
-    .container {
-      background: #fff;
-      border-radius: 12px;
-      padding: 2rem;
-      max-width: 400px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 40px;
     }
     input, button {
       padding: 10px;
-      width: 100%;
-      margin-top: 10px;
-      font-size: 1rem;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      margin: 10px;
     }
-    .result {
-      margin-top: 15px;
-      background: #e7ffe7;
-      padding: 1rem;
-      border-radius: 8px;
-      word-break: break-word;
-    }
-    .copy-btn {
-      background: #333;
+    button {
+      background: #22c55e;
       color: #fff;
       cursor: pointer;
-      margin-top: 5px;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #fbbf24;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>📱 Pair WhatsApp to Dave-Md-V1</h2>
-    <form id="pairForm">
-      <input type="text" id="number" placeholder="Enter WhatsApp Number" required />
-      <button type="submit">Generate Code</button>
-    </form>
-    <div id="result" class="result" style="display:none;">
-      <p><strong>Session ID:</strong> <span id="sessionIdText"></span></p>
-      <button class="copy-btn" onclick="copyToClipboard()">Copy Session ID</button>
-    </div>
-  </div>
+  <h1>📱 Dave-Md-V1 Pairing Portal</h1>
+  <p>Enter your WhatsApp number to begin pairing:</p>
+
+  <input type="text" id="numberInput" placeholder="e.g., 254712345678" />
+  <button onclick="requestPairCode()">Get Pairing Code</button>
+
+  <div class="result" id="result"></div>
 
   <script>
-    const form = document.getElementById('pairForm');
-    const resultDiv = document.getElementById('result');
-    const sessionIdText = document.getElementById('sessionIdText');
+    async function requestPairCode() {
+      const number = document.getElementById('numberInput').value.trim();
+      if (!number.match(/^\d{10,15}$/)) {
+        alert('Please enter a valid number');
+        return;
+      }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const number = document.getElementById('number').value;
       const res = await fetch('/api/pair', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ number })
       });
-      const data = await res.json();
-      if (data.sessionId) {
-        sessionIdText.textContent = data.sessionId;
-        resultDiv.style.display = 'block';
-      } else {
-        alert('Error: ' + (data.error || 'Unknown error'));
-      }
-    });
 
-    function copyToClipboard() {
-      navigator.clipboard.writeText(sessionIdText.textContent).then(() => {
-        alert('Copied to clipboard!');
-      });
+      const data = await res.json();
+      if (res.ok) {
+        document.getElementById('result').innerText = '✅ Code sent to your WhatsApp. Reply with it to receive your session ID.';
+      } else {
+        document.getElementById('result').innerText = `❌ Error: ${data.error}`;
+      }
     }
   </script>
 </body>
