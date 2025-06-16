@@ -1,3 +1,4 @@
+// index.js (stay at root for Heroku, Railway, Render, Predoctyle)
 const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
 const { Boom } = require('@hapi/boom');
 const fs = require('fs');
@@ -14,7 +15,7 @@ const { state, saveState } = useSingleFileAuthState(sessionFile);
 async function startBot() {
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true, // Optional if you are using code-based pairing
+    printQRInTerminal: true, // Optional, since you use code pairing
   });
 
   sock.ev.on('creds.update', saveState);
