@@ -1,15 +1,10 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/pair.js",
-      "use": "@vercel/node"
-    }
+    { "src": "api/pair.js", "use": "@vercel/node" }
   ],
   "routes": [
-    {
-      "src": "/api/pair",
-      "dest": "api/pair.js"
-    }
+    { "src": "/api/pair", "dest": "/api/pair.js" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
