@@ -1,116 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dave-Md-V1 Pairing</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: white;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      height: 100vh;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: white;
-      text-align: center;
-      animation: fadeIn 2s ease-in;
+      padding-top: 80px;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .container {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    input {
-      padding: 0.5rem;
-      width: 250px;
-      font-size: 1rem;
-      border-radius: 0.5rem;
+    input, button {
+      padding: 10px;
+      margin: 10px;
       border: none;
-      margin-bottom: 1rem;
+      border-radius: 5px;
     }
-
-    button {
-      padding: 0.5rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 0.5rem;
-      background: #00c6ff;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #0072ff;
-    }
-
-    #out {
-      margin-top: 1rem;
-      font-size: 1.1rem;
-      word-break: break-word;
-    }
-
-    .copy-btn {
-      margin-top: 0.5rem;
-      background: #ffb347;
-    }
-
-    h1 {
-      animation: float 2s infinite alternate ease-in-out;
-    }
-
-    @keyframes float {
-      from { transform: translateY(0); }
-      to { transform: translateY(-10px); }
+    #output {
+      margin-top: 20px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>💬 Dave-Md-V1 Pair Code</h1>
-    <input id="num" placeholder="Enter your phone number e.g. 254712345678" />
-    <br />
-    <button onclick="pair()">Get Code</button>
-    <div id="out"></div>
-  </div>
+  <h1>🔥 Dave-Md-V1 Pairing 🔥</h1>
+  <input type="text" id="number" placeholder="Enter phone number e.g. 254712345678">
+  <button onclick="pair()">Get Code</button>
+  <div id="output"></div>
 
   <script>
     async function pair() {
-      const number = document.getElementById('num').value.trim();
-      if (!number) return alert('Please enter your number');
-
-      const res = await fetch('/api/pair', {
+      const number = document.getElementById('number').value;
+      const res = await fetch('/api', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ number })
       });
-
       const data = await res.json();
-      if (res.ok && data.code) {
-        document.getElementById('out').innerHTML = `
-          ✅ Your Code: <b id="code">${data.code}</b><br/>
-          <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
-        `;
+      if (res.ok) {
+        document.getElementById('output').innerHTML = 
+          '✅ Your Code: <b>' + data.code + '</b><br>' +
+          '📥 Download Session: <a href="' + data.sessionFile + '" target="_blank">' + data.sessionFile + '</a><br>' +
+          '<button onclick="navigator.clipboard.writeText(\'' + data.code + '\')">📋 Copy Code</button>';
       } else {
-        document.getElementById('out').innerText = '❌ ' + (data.error || 'Something went wrong');
+        document.getElementById('output').innerText = '❌ ' + data.error;
       }
-    }
-
-    function copyCode() {
-      const code = document.getElementById('code').innerText;
-      navigator.clipboard.writeText(code);
-      alert('✅ Code copied to clipboard: ' + code);
     }
   </script>
 </body>
-  </html>
+</html>
