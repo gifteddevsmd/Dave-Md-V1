@@ -1,52 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dave-Md-V1 Pairing</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1f2937, #4b5563);
       color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-top: 80px;
+      justify-content: center;
+      height: 100vh;
+      animation: fadeIn 1.5s ease-in-out;
     }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 0.5em;
+      color: #38bdf8;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
     input, button {
       padding: 10px;
-      margin: 10px;
+      margin-top: 10px;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
+      width: 100%;
+      font-size: 1em;
     }
-    #output {
-      margin-top: 20px;
-      white-space: pre-wrap;
+
+    input {
+      background-color: #e5e7eb;
+      color: black;
+    }
+
+    button {
+      background-color: #38bdf8;
+      color: white;
+      cursor: pointer;
+    }
+
+    .code-display {
+      margin-top: 1em;
+      background: #111827;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: monospace;
+      word-wrap: break-word;
+    }
+
+    .copy-btn {
+      background: #10b981;
+      margin-top: 0.5em;
     }
   </style>
 </head>
 <body>
-  <h1>🔥 Dave-Md-V1 Pairing 🔥</h1>
-  <input type="text" id="number" placeholder="Enter phone number e.g. 254712345678">
-  <button onclick="pair()">Get Code</button>
-  <div id="output"></div>
+  <h1>Dave-Md-V1 Pairing</h1>
+  <form id="pairForm">
+    <input type="text" id="number" placeholder="Enter WhatsApp Number (e.g., 2547...)" required />
+    <button type="submit">Generate Code</button>
+  </form>
+  <div class="code-display" id="result" style="display: none;">
+    <span id="codeOutput"></span>
+    <button class="copy-btn" onclick="copyCode()">Copy Code</button>
+  </div>
 
   <script>
-    async function pair() {
+    const form = document.getElementById('pairForm');
+    const result = document.getElementById('result');
+    const codeOutput = document.getElementById('codeOutput');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
       const number = document.getElementById('number').value;
-      const res = await fetch('/api', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+
+      const res = await fetch("https://your-railway-app.up.railway.app/pair", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ number })
       });
+
       const data = await res.json();
-      if (res.ok) {
-        document.getElementById('output').innerHTML = 
-          '✅ Your Code: <b>' + data.code + '</b><br>' +
-          '📥 Download Session: <a href="' + data.sessionFile + '" target="_blank">' + data.sessionFile + '</a><br>' +
-          '<button onclick="navigator.clipboard.writeText(\'' + data.code + '\')">📋 Copy Code</button>';
+      if (data && data.code) {
+        codeOutput.innerText = data.code;
+        result.style.display = 'block';
       } else {
-        document.getElementById('output').innerText = '❌ ' + data.error;
+        codeOutput.innerText = "❌ Failed to generate code.";
+        result.style.display = 'block';
       }
+    });
+
+    function copyCode() {
+      navigator.clipboard.writeText(codeOutput.innerText).then(() => {
+        alert("Code copied to clipboard ✅");
+      });
     }
   </script>
 </body>
