@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: dave-md-pairing
+    env: node
+    buildCommand: npm install
+    startCommand: node api/pair.js
+    plan: free
+    branch: main
+    envVars:
+      - key: MONGO_URI
+        sync: false
