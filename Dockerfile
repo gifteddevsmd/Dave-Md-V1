@@ -1,20 +1,20 @@
-# Use Node.js v18 base image
+# 🐳 Use official Node.js 18 image
 FROM node:18
 
-# Set working directory
+# 📁 Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# 📦 Copy dependency files first (for better caching)
 COPY package*.json ./
 
-# Install dependencies
+# 📥 Install dependencies
 RUN npm install
 
-# Copy the rest of your project files
+# 📁 Copy all project files
 COPY . .
 
-# Expose port (Heroku, Railway, etc. will override this)
+# 🌐 Expose port (platforms like Railway/Heroku auto-assign this)
 EXPOSE 3000
 
-# Start the bot
-CMD ["node", "index.js"]
+# 🚀 Start your pairing backend
+CMD ["node", "pair.js"]
