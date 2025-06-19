@@ -1,31 +1,70 @@
-// 📁 api/pair.js
-import fs from 'fs'
-import path from 'path'
-import { randomBytes } from 'crypto'
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+const { makeWASocket, useSingleFileAuthState } = require('@whiskeysockets/baileys');
+const randomstring = require('randomstring');
 
-const sessionsDir = path.resolve('./session-codes')
-if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir)
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 📁 Directory to store session files
+const sessionsDir = path.join(__dirname, 'sessions');
+if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir);
+
+let cooldown = {};
+
+app.post('/pair', async (req, res) => {
+  try {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const number = req.body.number?.replace(/\D/g, '');
+
+    if (!number) return res.status(400).json({ error: 'Phone number required' });
+
+    // Cooldown: 1 request per IP every 10 seconds
+    if (cooldown[ip] && Date.now() - cooldown[ip] < 10000) {
+      return res.status(429).json({ error: 'Please wait 10 seconds before retrying.' });
+    }
+    cooldown[ip] = Date.now();
+
+    const code = randomstring.generate({ length: 6, charset: 'alphanumeric' }).toUpperCase();
+    const sessionFile = path.join(sessionsDir, `${code}.json`);
+    const { state, saveState } = useSingleFileAuthState(sessionFile);
+
+    const sock = makeWASocket({ auth: state });
+
+    sock.ev.on('connection.update', ({ connection }) => {
+      if (connection === 'open') {
+        console.log(`✅ WhatsApp connected for: ${number}`);
+      }
+    });
+
+    sock.ev.on('creds.update', saveState);
+
+    return res.json({
+      code,
+      sessionFile: `/sessions/${code}.json`,
+      message: 'Session initialized. Please complete linking via WhatsApp.'
+    });
+
+  } catch (err) {
+    console.error('❌ Error:', err);
+    res.status(500).json({ error: 'Something went wrong initializing session.' });
   }
+});
 
-  const { number } = req.body
-  if (!number || !/^\d+$/.test(number)) {
-    return res.status(400).json({ error: 'Valid number is required' })
-  }
+// Static session file access (if needed)
+app.use('/sessions', express.static(sessionsDir));
 
-  const code = randomBytes(3).toString('hex')
-  const sessionId = `gifteddave~${code}`
-  const sessionPath = path.join(sessionsDir, `${number}.json`)
+// Optional health check
+app.get('/', (req, res) => {
+  res.send('✅ Dave-Md-V1 Pairing API is online.');
+});
 
-  fs.writeFileSync(sessionPath, JSON.stringify({ number, sessionId, created: Date.now() }, null, 2))
-
-  return res.status(200).json({
-    message: 'Session generated successfully',
-    code,
-    sessionId,
-    instructions: `Use session ID ${sessionId} in your bot environment variables`
-  })
-}
+app.listen(PORT, () => {
+  console.log(`🚀 Pairing backend running on port ${PORT}`);
+});
