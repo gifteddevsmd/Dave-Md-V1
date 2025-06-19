@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Dave-Md-V1 phone-number-based WhatsApp bot pairing backend",
   "type": "module",
-  "main": "index.js",
+  "main": "pair.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
+    "start": "node pair.js",
+    "dev": "nodemon pair.js"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -18,5 +18,8 @@
     "express": "^4.18.2",
     "mongoose": "^7.5.0",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
