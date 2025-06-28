@@ -25,7 +25,11 @@ services:
         value: https://youtube.com/@gifteddave
       - key: WHATSAPP_CHANNEL
         value: https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k
+      - key: MESSAGE
+        value: ✅ Session linked successfully to Dave-Md-V1
       - key: PORT
         value: 3000
       - key: MONGO_URI
+        sync: false
+      - key: HEROKU_API_KEY
         sync: false
