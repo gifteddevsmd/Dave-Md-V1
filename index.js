@@ -26,7 +26,7 @@ const { state, saveState } = useSingleFileAuthState(sessionFile);
 async function startBot() {
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true
+    printQRInTerminal: true // QR only printed on local, ignored in cloud
   });
 
   sock.ev.on('creds.update', saveState);
@@ -59,23 +59,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔁 API Handlers
-const pairHandler = require('./api/pair');
-const qrHandler = require('./api/qr');
+// 🔁 API Routes
+try {
+  const pairHandler = require('./api/pair');
+  const qrHandler = require('./api/qr');
 
-app.use('/api/pair', pairHandler);
-app.use('/api/qr', qrHandler);
+  app.use('/api/pair', pairHandler);
+  app.use('/api/qr', qrHandler);
+} catch (e) {
+  console.warn('⚠️ Optional API routes not found or not used in this build.');
+}
 
-// 🖼️ Static HTML Pages
+// 🖼️ Static Pages
 app.use(express.static(path.join(__dirname, 'public')));
-
-// 🧾 Direct Page Access
-app.get('/pair', (_, res) => {
-  res.sendFile(path.join(__dirname, 'public/pair.html'));
-});
-app.get('/', (_, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
+app.get('/pair', (_, res) => res.sendFile(path.join(__dirname, 'public/pair.html')));
+app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
 
 // ✅ Health Check
 app.get('/health', (_, res) => {
@@ -85,7 +83,7 @@ app.get('/health', (_, res) => {
 // 🚀 Start Server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`🌍 Server running at http://localhost:${PORT}`);
+  console.log(`🌍 Server running on http://localhost:${PORT}`);
 });
 
 module.exports = app;
