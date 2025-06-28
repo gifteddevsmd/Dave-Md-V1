@@ -1,56 +1,83 @@
 {
-  "name": "Dave-Md-V1 Pairing",
-  "description": "Code-based WhatsApp Pairing for Dave-Md-V1 bot by Gifted Dave",
+  "name": "Dave-Md-V1",
+  "version": "1.0.0",
+  "description": "Multi-device WhatsApp bot with code-based pairing by Gifted Dave",
   "logo": "https://i.imgur.com/LyHic3i.gif",
+  "keywords": ["whatsapp", "baileys", "bot", "code-pairing", "DaveMd-V1"],
   "repository": "https://github.com/gifteddaves/Dave-Md-V1",
-  "keywords": ["whatsapp", "bot", "baileys", "code-pairing", "DaveMd"],
-  "success_url": "/",
   "stack": "container",
-  "buildpacks": [
-    {
-      "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest"
-    }
-  ],
+  "scripts": {
+    "start": "node index.js"
+  },
   "env": {
-    "PORT": {
-      "description": "Port number for the backend server",
-      "value": "5000",
-      "required": false
-    },
-    "MESSAGE": {
-      "description": "Session ID confirmation message",
-      "value": "✅ Session linked successfully to Dave-Md-V1",
-      "required": false
-    },
-    "BOT_NAME": {
-      "value": "Dave-Md-V1",
-      "description": "Bot name to be displayed",
+    "SESSION_ID": {
+      "description": "Enter your session ID from code-based pairing",
+      "value": "",
       "required": true
     },
-    "OWNER_NAME": {
-      "value": "Gifted Dave",
-      "description": "Bot owner's display name",
+    "BOT_NAME": {
+      "description": "Customize your bot name",
+      "value": "Dave-Md-V1",
       "required": true
     },
     "OWNER_NUMBER": {
+      "description": "Your WhatsApp number",
       "value": "254104260236",
-      "description": "Bot owner's WhatsApp number",
       "required": true
     },
-    "WEBSITE_URL": {
-      "value": "https://youtube.com/@davlidavlo19",
-      "description": "Your YouTube or landing page",
+    "WELCOME": {
+      "description": "Enable welcome/goodbye messages in groups? (true/false)",
+      "value": "true",
       "required": false
     },
-    "WHATSAPP_CHANNEL": {
-      "value": "https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k",
-      "description": "Your WhatsApp channel link",
+    "AUTO_BLOCK": {
+      "description": "Block unknown contacts automatically? (true/false)",
+      "value": "false",
       "required": false
     },
-    "GITHUB_USERNAME": {
-      "value": "gifteddaves",
-      "description": "Your GitHub username",
+    "ANTI_CALL": {
+      "description": "Reject incoming calls automatically? (true/false)",
+      "value": "true",
+      "required": false
+    },
+    "ANTIFOREIGN_NUMBER": {
+      "description": "Block numbers from these country codes (comma-separated)",
+      "value": "",
+      "required": false
+    },
+    "AUTOSW_VIEW": {
+      "description": "View WhatsApp status updates automatically? (true/false)",
+      "value": "false",
+      "required": false
+    },
+    "AUTO_RECORD": {
+      "description": "Show recording status always? (true/false)",
+      "value": "false",
+      "required": false
+    },
+    "PREFIX": {
+      "description": "Command prefix to trigger the bot (e.g. . or !)",
+      "value": ".",
+      "required": true
+    },
+    "HEROKU_API_KEY": {
+      "description": "Your Heroku API key (optional, for advanced deploy commands)",
+      "value": "",
       "required": false
     }
-  }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    },
+    {
+      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
+    },
+    {
+      "url": "https://github.com/DuckyTeam/heroku-buildpack-imagemagick.git"
+    },
+    {
+      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
+    }
+  ]
 }
