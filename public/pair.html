@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dave-Md-V1 Pair Code</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: black;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .box {
+      width: 300px;
+      height: 320px;
+      padding: 20px;
+      background-color: rgb(0, 0, 0);
+      opacity: 0.85;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(250, 249, 249, 0.7);
+      text-align: center;
+    }
+
+    #text {
+      color: #f6f5f5;
+    }
+
+    .input-container {
+      display: flex;
+      background: black;
+      border-radius: 1rem;
+      padding: 0.3rem;
+      gap: 0.3rem;
+      max-width: 300px;
+      width: 100%;
+    }
+
+    .input-container input {
+      border-radius: 0.8rem 0 0 0.8rem;
+      background: #e8e8e8;
+      box-shadow: inset 13px 13px 10px #dcdcdc, inset -13px -13px 10px #f4f4f4;
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-left: 2px solid #ecf2f8;
+      color: #000;
+    }
+
+    .input-container input:focus {
+      border-left: 2px solid #ecf1f6;
+      outline: none;
+      box-shadow: inset 13px 13px 10px #f0f2f3, inset -13px -13px 10px #f4f4f4;
+    }
+
+    .input-container button {
+      padding: 1rem;
+      background: #5935ac;
+      font-weight: 700;
+      letter-spacing: 0.3rem;
+      text-transform: uppercase;
+      color: white;
+      border: none;
+      width: 90%;
+      border-radius: 0 1rem 1rem 0;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .input-container button:hover {
+      background: linear-gradient(135deg, #c01736 0%, #8b17b6 100%);
+    }
+
+    .centered-text {
+      color: #e9e4e4;
+      text-align: center;
+    }
+
+    @media (max-width: 500px) {
+      .box {
+        width: 90%;
+      }
+
+      .input-container {
+        flex-direction: column;
+      }
+
+      .input-container input {
+        border-radius: 0.8rem;
+        width: 80%;
+      }
+
+      .input-container button {
+        padding: 1rem;
+        border-radius: 0.9rem;
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main">
+      <div class="box" id="box">
+        <div id="text">
+          <i class="fa fa-user"></i>
+          <h3 class="centered-text">Dave-Md-V1 Pairing Code</h3>
+          <h6>by Gifted Dave</h6>
+          <h6>Enter your WhatsApp number (with country code)</h6>
+          <div class="input-container">
+            <input placeholder="254748387xxx" type="number" id="number" />
+            <button id="submit">REQUEST</button>
+          </div>
+
+          <a id="waiting-message" class="centered-text" style="display: none;">Please wait a while...</a>
+          <br /><br />
+          <main id="pair"></main>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+  <script>
+    let result = document.getElementById("pair");
+    let submit = document.getElementById("submit");
+    let numberInput = document.getElementById("number");
+
+    async function Copy() {
+      let text = document.getElementById("copy").innerText;
+      let obj = document.getElementById("copy");
+      await navigator.clipboard.writeText(obj.innerText.replace('CODE: ', ''));
+      obj.innerText = "COPIED";
+      obj.style = "color:blue;font-weight:bold";
+      setTimeout(() => {
+        obj.innerText = text;
+        obj.style = "color:white;font-weight:bold";
+      }, 800);
+    }
+
+    submit.addEventListener("click", async (e) => {
+      e.preventDefault();
+      let phone = numberInput.value.replace(/[^0-9]/g, "");
+      if (!phone) {
+        result.innerHTML = '<a style="color:white;font-weight:bold">Enter your number with country code</a><br><br>';
+        return;
+      }
+      if (phone.length < 11) {
+        result.innerHTML = '<a style="color:red;font-weight:bold">Invalid number</a><br><br>';
+        return;
+      }
+
+      numberInput.value = '+' + phone;
+      numberInput.type = 'text';
+      numberInput.style = 'color:black;font-size:20px';
+      result.innerHTML = '<a style="color:white;font-weight:bold">Please Wait...</a><br><br>';
+
+      try {
+        let res = await axios.get(`/api/pair?number=${phone}`);
+        let code = res.data.code || "Unavailable";
+        result.innerHTML = `<font id="copy" onclick="Copy()" style="color:red;font-weight:bold;cursor:pointer" size="5">CODE: <span style="color:white">${code}</span></font><br><br>`;
+      } catch (err) {
+        result.innerHTML = '<a style="color:orange;font-weight:bold">Error generating code. Try again.</a><br><br>';
+      }
+    });
+  </script>
+</body>
+  </html>
