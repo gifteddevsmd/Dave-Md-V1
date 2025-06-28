@@ -1,15 +1,18 @@
 {
-  "public": true,
   "builds": [
     {
       "src": "api/pair.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "api/qr.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/pair.js"
-    }
+    { "src": "/api/pair", "dest": "/api/pair.js" },
+    { "src": "/api/qr", "dest": "/api/qr.js" },
+    { "src": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|html))", "dest": "/public/$1" },
+    { "src": "/(.*)", "dest": "/public/index.html" }
   ]
 }
