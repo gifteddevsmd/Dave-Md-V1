@@ -1,125 +1,118 @@
-const { makeid } = require('./gen-id');
+const PastebinAPI = require('pastebin-js');
+const pastebin = new PastebinAPI('EMWTMkQAVfJa9kM-MRUrxd5Oku1U7pgL'); // Use your real dev key
+const { makeid } = require('./id');
 const express = require('express');
 const fs = require('fs');
 let router = express.Router();
-const pino = require("pino");
+const pino = require('pino');
 const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    delay,
-    Browsers,
-    makeCacheableSignalKeyStore
+  default: makeWASocket,
+  useMultiFileAuthState,
+  delay,
+  makeCacheableSignalKeyStore,
+  Browsers
 } = require('@whiskeysockets/baileys');
-const { upload } = require('./mega');
 
 function removeFile(FilePath) {
-    if (!fs.existsSync(FilePath)) return false;
-    fs.rmSync(FilePath, { recursive: true, force: true });
+  if (!fs.existsSync(FilePath)) return false;
+  fs.rmSync(FilePath, { recursive: true, force: true });
 }
 
 router.get('/', async (req, res) => {
-    const id = makeid();
-    let num = req.query.number;
+  const id = makeid();
+  let num = req.query.number;
 
-    async function DAVE_MD_PAIR_CODE() {
-        const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
-        try {
-            var items = ["Safari"];
-            function selectRandomItem(array) {
-                var randomIndex = Math.floor(Math.random() * array.length);
-                return array[randomIndex];
-            }
-            var randomItem = selectRandomItem(items);
+  async function DAVE_MD_PAIR_CODE() {
+    const { state, saveCreds } = await useMultiFileAuthState('./temp/' + id);
+    try {
+      let sock = makeWASocket({
+        auth: {
+          creds: state.creds,
+          keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'fatal' }).child({ level: 'fatal' })),
+        },
+        printQRInTerminal: false,
+        logger: pino({ level: 'fatal' }).child({ level: 'fatal' }),
+        browser: Browsers.macOS('Chrome')
+      });
 
-            let sock = makeWASocket({
-                auth: {
-                    creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
-                },
-                printQRInTerminal: false,
-                generateHighQualityLinkPreview: true,
-                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
-                syncFullHistory: false,
-                browser: Browsers.macOS(randomItem)
-            });
-
-            if (!sock.authState.creds.registered) {
-                await delay(1500);
-                num = num.replace(/[^0-9]/g, '');
-                const code = await sock.requestPairingCode(num);
-                if (!res.headersSent) {
-                    await res.send({ code });
-                }
-            }
-
-            sock.ev.on('creds.update', saveCreds);
-            sock.ev.on("connection.update", async (s) => {
-                const { connection, lastDisconnect } = s;
-
-                if (connection == "open") {
-                    await delay(5000);
-                    let rf = __dirname + `/temp/${id}/creds.json`;
-                    const mega_url = await upload(fs.createReadStream(rf), `${sock.user.id}.json`);
-                    const sessionId = "gifteddave~" + mega_url.replace('https://mega.nz/file/', '');
-
-                    let sessionCode = await sock.sendMessage(sock.user.id, { text: sessionId });
-
-                    let welcomeMessage = `*Welcome to Dave-Md-V1 🤖*
-                    
-> Your WhatsApp bot session has been securely paired.
-
-🔐 *Session ID: Hidden*  
-💡 *Important:* Do **NOT** share this with anyone.
-
-📢 *Join our community:*  
-https://chat.whatsapp.com/CaPeB0sVRTrL3aG6asYeAC  
-📺 *Channel:* https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k  
-🛠️ *Repo:* https://github.com/gifteddaves/Dave-Md-V1  
-👑 *Owner:* https://wa.me/254104260236`;
-
-                    await sock.sendMessage(sock.user.id, {
-                        text: welcomeMessage,
-                        contextInfo: {
-                            externalAdReply: {
-                                title: "Dave-Md-V1 by Gifted Dave",
-                                thumbnailUrl: "https://img1.pixhost.to/images/5863/601094475_skyzopedia.jpg",
-                                sourceUrl: "https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k",
-                                mediaType: 1,
-                                renderLargerThumbnail: true
-                            }
-                        }
-                    }, { quoted: sessionCode });
-
-                    await delay(10);
-                    await sock.ws.close();
-                    removeFile('./temp/' + id);
-                    console.log(`✅ Connected: ${sock.user.id} — Restarting...`);
-                    await delay(10);
-                    process.exit();
-                } else if (connection === "close" && lastDisconnect?.error?.output?.statusCode != 401) {
-                    await delay(10);
-                    DAVE_MD_PAIR_CODE();
-                }
-            });
-
-        } catch (err) {
-            console.log("🔄 Restarting service...");
-            removeFile('./temp/' + id);
-            if (!res.headersSent) {
-                await res.send({ code: "❗ Service Unavailable" });
-            }
+      if (!sock.authState.creds.registered) {
+        await delay(1500);
+        num = num.replace(/[^0-9]/g, '');
+        const code = await sock.requestPairingCode(num);
+        if (!res.headersSent) {
+          await res.send({ code });
         }
+      }
+
+      sock.ev.on('creds.update', saveCreds);
+
+      sock.ev.on('connection.update', async (s) => {
+        const { connection, lastDisconnect } = s;
+
+        if (connection === 'open') {
+          await delay(5000);
+          let data = fs.readFileSync(__dirname + `/temp/${id}/creds.json`);
+          await delay(1000);
+          let b64data = Buffer.from(data).toString('base64');
+
+          const pasteUrl = await pastebin.createPaste({
+            code: b64data,
+            expireDate: '1D',
+            format: 'text',
+            name: `${sock.user.id} | DaveMdV1 Session`,
+            publicity: 1
+          });
+
+          const sessionId = `gifteddave~${pasteUrl.split('/').pop()}`;
+          const sessionMsg = await sock.sendMessage(sock.user.id, { text: sessionId });
+
+          let DAVE_MD_TEXT = `
+╔════ ❖  𝘿𝘼𝙑𝙀 𝙈𝘿 - 𝙎𝙀𝙎𝙎𝙄𝙊𝙉  ❖ ════╗
+║ ✅ Session connected successfully
+║ 🔐 *SESSION ID:* (Sent Above)
+║ 🚫 Don't share this with anyone!
+╚══════════════════════════╝
+
+🔗 *Community & Support:*
+📣 Channel: https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k  
+👥 Group: https://chat.whatsapp.com/CaPeB0sVRTrL3aG6asYeAC  
+💻 Repo: https://github.com/gifteddaves/Dave-Md-V1  
+📞 Owner: https://wa.me/254104260236
+
+⭐️ Give a star on GitHub & share Dave-Md-V1 🙏`;
+
+          await sock.sendMessage(sock.user.id, {
+            text: DAVE_MD_TEXT,
+            contextInfo: {
+              externalAdReply: {
+                title: "Dave-Md-V1 Session Linked",
+                thumbnailUrl: "https://img1.pixhost.to/images/5863/601094475_skyzopedia.jpg",
+                sourceUrl: "https://github.com/gifteddaves/Dave-Md-V1",
+                mediaType: 1,
+                renderLargerThumbnail: true
+              }
+            }
+          }, { quoted: sessionMsg });
+
+          await delay(200);
+          await sock.ws.close();
+          removeFile('./temp/' + id);
+          console.log(`✅ ${sock.user.id} session connected & session ID sent`);
+        } else if (connection === 'close' && lastDisconnect?.error?.output?.statusCode !== 401) {
+          await delay(10000);
+          DAVE_MD_PAIR_CODE();
+        }
+      });
+    } catch (err) {
+      console.log('🔄 Error or restart');
+      removeFile('./temp/' + id);
+      if (!res.headersSent) {
+        await res.send({ code: 'Service Currently Unavailable' });
+      }
     }
+  }
 
-    return await DAVE_MD_PAIR_CODE();
+  return await DAVE_MD_PAIR_CODE();
 });
-
-/*
-// Optional Auto-Restart Every 30 Minutes
-setInterval(() => {
-    console.log("🌀 Auto-restarting service...");
-    process.exit();
-}, 1800000); // 30 minutes
-*/
 
 module.exports = router;
