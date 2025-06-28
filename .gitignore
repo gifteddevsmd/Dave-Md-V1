@@ -1,8 +1,56 @@
+# Node.js core
 node_modules/
-session/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Environment & Auth
 .env
+session/
+auth/
+creds.json
+
+# OS generated
 .DS_Store
-*.log
-*.sqlite
-.settings
 Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Baileys temp/session
+*.sqlite
+.baileys_store/
+
+# IDE/Editor folders
+.vscode/
+.idea/
+
+# Optional compiled outputs
+dist/
+build/
+
+# Cache
+.cache/
+tmp/
+temp/
+*.tmp
+
+# Heroku / PM2
+.pm2/
+
+# Docker
+docker-compose.override.yml
+
+# Misc
+*.bak
+*.swp
+*.swo
+
+# Ignore database
+src/database.json
+
+# Ignore session ID files
+.DaveMd-V1*
+*.code-workspace
