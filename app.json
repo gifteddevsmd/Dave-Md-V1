@@ -1,87 +1,56 @@
 {
-  "name": "Dave-Md-V1",
-  "description": "Multi-Device WhatsApp Bot Using Baileys (Code Pairing Enabled)",
-  "repository": "https://github.com/gifteddaves/Dave-Md-V1",
+  "name": "Dave-Md-V1 Pairing",
+  "description": "Code-based WhatsApp Pairing for Dave-Md-V1 bot by Gifted Dave",
   "logo": "https://i.imgur.com/LyHic3i.gif",
-  "keywords": ["multi-device", "whatsapp", "bot", "baileys", "code-pairing"],
+  "repository": "https://github.com/gifteddaves/Dave-Md-V1",
+  "keywords": ["whatsapp", "bot", "baileys", "code-pairing", "DaveMd"],
+  "success_url": "/",
   "stack": "container",
-  "formation": {
-    "web": {
-      "quantity": 1,
-      "size": "standard-1x"
+  "buildpacks": [
+    {
+      "url": "https://github.com/heroku/heroku-buildpack-nodejs#latest"
     }
-  },
+  ],
   "env": {
-    "SESSION_ID": {
-      "description": "Enter session id (optional if using code-pairing)",
+    "PORT": {
+      "description": "Port number for the backend server",
+      "value": "5000",
+      "required": false
+    },
+    "MESSAGE": {
+      "description": "Session ID confirmation message",
+      "value": "✅ Session linked successfully to Dave-Md-V1",
       "required": false
     },
     "BOT_NAME": {
       "value": "Dave-Md-V1",
-      "description": "Bot Name",
-      "required": true
-    },
-    "OWNER_NUMBER": {
-      "value": "254104260236",
-      "description": "Owner Number",
+      "description": "Bot name to be displayed",
       "required": true
     },
     "OWNER_NAME": {
       "value": "Gifted Dave",
-      "description": "Owner Name",
+      "description": "Bot owner's display name",
       "required": true
     },
-    "PACK_NAME": {
-      "value": "Dave-Md Stickers",
-      "description": "Sticker Package Name",
-      "required": false
-    },
-    "AUTHOR_NAME": {
-      "value": "Made by Gifted Dave",
-      "description": "Sticker Author Name",
-      "required": false
-    },
-    "XPREFIX": {
-      "value": ".",
-      "description": "Bot Prefix",
-      "required": true
-    },
-    "PREMIUM_NUMBER": {
+    "OWNER_NUMBER": {
       "value": "254104260236",
-      "description": "Premium User Numbers (comma-separated)",
+      "description": "Bot owner's WhatsApp number",
       "required": true
     },
-    "MENU_TYPE": {
-      "value": "v2",
-      "description": "Menu Type (v1, v2)",
-      "required": false
-    },
-    "AUTOBLOCK_COUNTRYCODE": {
-      "value": "212",
-      "description": "Auto-block numbers from this country code",
-      "required": false
-    },
-    "ANTIFOREIGN_COUNTRYCODE": {
-      "value": "91",
-      "description": "Block numbers not from this country",
-      "required": false
-    },
-    "GITHUB_USERNAME": {
-      "value": "gifteddaves",
-      "description": "GitHub Username",
+    "WEBSITE_URL": {
+      "value": "https://youtube.com/@davlidavlo19",
+      "description": "Your YouTube or landing page",
       "required": false
     },
     "WHATSAPP_CHANNEL": {
       "value": "https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k",
-      "description": "WhatsApp Channel Link",
+      "description": "Your WhatsApp channel link",
       "required": false
     },
-    "WEBSITE_URL": {
-      "value": "https://youtube.com/@gifteddave",
-      "description": "Your personal website or YouTube",
+    "GITHUB_USERNAME": {
+      "value": "gifteddaves",
+      "description": "Your GitHub username",
       "required": false
     }
-  },
-  "buildpacks": [],
-  "image": "web"
+  }
 }
