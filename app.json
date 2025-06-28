@@ -1,83 +1,76 @@
 {
   "name": "Dave-Md-V1",
-  "version": "1.0.0",
-  "description": "Multi-device WhatsApp bot with code-based pairing by Gifted Dave",
-  "logo": "https://i.imgur.com/LyHic3i.gif",
-  "keywords": ["whatsapp", "baileys", "bot", "code-pairing", "DaveMd-V1"],
+  "description": "WhatsApp Bot Using Baileys by Gifted Dave",
   "repository": "https://github.com/gifteddaves/Dave-Md-V1",
+  "logo": "https://iili.io/dET3ukX.md.png",
+  "keywords": ["whatsapp", "baileys", "multi-device", "whatsapp-bot", "GiftedDave", "Dave-Md-V1"],
   "stack": "container",
-  "scripts": {
-    "start": "node index.js"
+  "formation": {
+    "worker": {
+      "quantity": 1,
+      "size": "Standard-2X"
+    }
   },
   "env": {
     "SESSION_ID": {
-      "description": "Enter your session ID from code-based pairing",
-      "value": "",
+      "description": "Enter session ID here; must start with DaveMd-V1~",
       "required": true
     },
     "BOT_NAME": {
-      "description": "Customize your bot name",
       "value": "Dave-Md-V1",
+      "description": "Bot Display Name",
       "required": true
     },
     "OWNER_NUMBER": {
-      "description": "Your WhatsApp number",
       "value": "254104260236",
+      "description": "Owner WhatsApp Number",
       "required": true
     },
-    "WELCOME": {
-      "description": "Enable welcome/goodbye messages in groups? (true/false)",
-      "value": "true",
+    "OWNER_NAME": {
+      "value": "Gifted Dave",
+      "description": "Owner Full Name",
+      "required": true
+    },
+    "PACK_NAME": {
+      "value": "Dave-Md-V1 Pack",
+      "description": "Sticker Pack Name",
       "required": false
     },
-    "AUTO_BLOCK": {
-      "description": "Block unknown contacts automatically? (true/false)",
-      "value": "false",
+    "AUTHOR_NAME": {
+      "value": "Gifted Dave - Dave-Md-V1",
+      "description": "Sticker Author Name",
       "required": false
     },
-    "ANTI_CALL": {
-      "description": "Reject incoming calls automatically? (true/false)",
-      "value": "true",
-      "required": false
-    },
-    "ANTIFOREIGN_NUMBER": {
-      "description": "Block numbers from these country codes (comma-separated)",
-      "value": "",
-      "required": false
-    },
-    "AUTOSW_VIEW": {
-      "description": "View WhatsApp status updates automatically? (true/false)",
-      "value": "false",
-      "required": false
-    },
-    "AUTO_RECORD": {
-      "description": "Show recording status always? (true/false)",
-      "value": "false",
-      "required": false
-    },
-    "PREFIX": {
-      "description": "Command prefix to trigger the bot (e.g. . or !)",
+    "XPREFIX": {
       "value": ".",
+      "description": "Bot Prefix",
       "required": true
     },
-    "HEROKU_API_KEY": {
-      "description": "Your Heroku API key (optional, for advanced deploy commands)",
+    "PREMIUM_NUMBER": {
+      "value": "254104260236",
+      "description": "Premium Numbers (comma-separated)",
+      "required": false
+    },
+    "MENU_TYPE": {
+      "value": "v2",
+      "description": "Bot Menu Style (v1 or v2)",
+      "required": false
+    },
+    "AUTOBLOCK_COUNTRYCODE": {
       "value": "",
+      "description": "Block specific country code (e.g. 212)",
+      "required": false
+    },
+    "ANTIFOREIGN_COUNTRYCODE": {
+      "value": "",
+      "description": "Restrict access from country code (e.g. 91)",
       "required": false
     }
   },
   "buildpacks": [
-    {
-      "url": "heroku/nodejs"
-    },
-    {
-      "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest"
-    },
-    {
-      "url": "https://github.com/DuckyTeam/heroku-buildpack-imagemagick.git"
-    },
-    {
-      "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git"
-    }
+    { "url": "heroku/nodejs" },
+    { "url": "https://github.com/DuckyTeam/heroku-buildpack-imagemagick.git" },
+    { "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest" },
+    { "url": "https://github.com/clhuang/heroku-buildpack-webp-binaries.git" }
   ]
 }
