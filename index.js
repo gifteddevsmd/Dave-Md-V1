@@ -1,20 +1,27 @@
+// 📦 Core dependencies
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 const { Boom } = require('@hapi/boom');
+
+// 📲 Baileys dependencies
 const {
   default: makeWASocket,
   useSingleFileAuthState,
   DisconnectReason
 } = require('@whiskeysockets/baileys');
 
+// 🌍 Load Global Bot Config and Main Bot Logic
+require('./settings');         // Load env-based global configs
+require('./Dave-Md-V1.js');    // Load bot logic, DB, and handlers
+
 // 🗂 Ensure session folder exists
 const sessionPath = path.join(__dirname, 'session');
 if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath);
 const sessionFile = path.join(sessionPath, 'creds.json');
 
-// 🔐 Auth state
+// 🔐 Load auth state
 const { state, saveState } = useSingleFileAuthState(sessionFile);
 
 // 🤖 Start WhatsApp Bot
@@ -42,6 +49,7 @@ async function startBot() {
 
     const sender = m.key.remoteJid;
     const text = m.message?.conversation || m.message?.extendedTextMessage?.text;
+
     if (text?.toLowerCase() === 'hi' || text?.toLowerCase() === 'hello') {
       await sock.sendMessage(sender, { text: '👋 Hello! Dave-Md-V1 is online and working.' });
     }
@@ -54,14 +62,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🧠 API routes (e.g., /api/pair)
+// 📩 Pairing API Route
 const pairHandler = require('./api/pair');
 app.post('/api/pair', pairHandler.handler);
 
-// 🖼️ Serve frontend files from /public (pair.html, main.html, etc.)
+// 🖼 Serve frontend files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ✅ Health check endpoint
+// ✅ Health check
 app.get('/health', (_, res) => {
   res.send('🟢 Dave-Md-V1 Pairing Backend Running');
 });
