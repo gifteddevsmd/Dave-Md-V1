@@ -12,86 +12,107 @@
 
 <p align="center">
   <a href="https://github.com/gifteddaves"><img title="Author" src="https://img.shields.io/badge/Author-Gifted%20Dave-blue?style=for-the-badge&logo=github"></a>
-  <a href="https://github.com/gifteddaves/Dave-Md-V1"><img title="Repo" src="https://img.shields.io/badge/View%20Source-DAVE--MD--V1-success?style=for-the-badge&logo=github"></a>
+  <a href="https://github.com/gifteddaves/Dave-Md-V1"><img title="Repo" src="https://img.shields.io/badge/View%20Source-Dave--Md--V1-success?style=for-the-badge&logo=github"></a>
   <a href="https://github.com/gifteddaves/Dave-Md-V1/fork"><img title="Fork Repo" src="https://img.shields.io/badge/Fork%20Repo-Click%20Here-yellow?style=for-the-badge&logo=github"></a>
 </p>
 
----
-
 <p align="center">
-  Meet <b>Dave-Md-V1</b> — Your All-in-One WhatsApp Bot Buddy!  
-  Enjoy a thrilling messaging experience like never before.  
-  Powerful, Fast, and Fully Customizable — your ultimate WhatsApp toolbox ✨🤖
+  <img src="https://img.shields.io/github/stars/gifteddaves/Dave-Md-V1?style=social" />
+  <img src="https://img.shields.io/github/forks/gifteddaves/Dave-Md-V1?style=social" />
+  <img src="https://img.shields.io/github/issues/gifteddaves/Dave-Md-V1?style=social" />
 </p>
 
 ---
 
-## 🚀 Deployment Methods
-
-### 🔑 Get Your Pairing Session (No QR Needed!)
+## 🔐 Session Pairing
 
 <p align="center">
-  <a href="https://dave-onrender-com.onrender.com">
-    <img src="https://img.shields.io/badge/Pairing Site-DAVE--MD--V1-green?style=for-the-badge&logo=whatsapp" />
+  <a href="https://davesxmd-03209e7609ef.herokuapp.com/">
+    <img src="https://img.shields.io/badge/Open%20Pairing%20Site-Dave--Md--V1-green?style=for-the-badge&logo=whatsapp" />
   </a>
 </p>
 
 ---
 
-### 🌐 Deploy to Heroku
+## 🚀 Deployment Options
+
+### ☁️ Heroku
 
 <p align="center">
+  <a href="https://signup.heroku.com/">
+    <img src="https://img.shields.io/badge/Create%20Heroku%20Account-6f42c1?style=for-the-badge&logo=heroku" />
+  </a>
   <a href="https://dashboard.heroku.com/new?template=https://github.com/gifteddaves/Dave-Md-V1">
-    <img src="https://img.shields.io/badge/DEPLOY TO HEROKU-purple?style=for-the-badge&logo=heroku" width="250"/>
+    <img src="https://img.shields.io/badge/Deploy%20to%20Heroku-purple?style=for-the-badge&logo=heroku" />
   </a>
 </p>
 
-📝 Paste your session ID when asked  
-🛡️ Fully compatible with Heroku
-
 ---
 
-### 🔴 Deploy to Render
+### 🔴 Render
 
 <p align="center">
   <a href="https://dashboard.render.com">
-    <img src="https://img.shields.io/badge/RENDER DEPLOY-red?style=for-the-badge&logo=render" />
+    <img src="https://img.shields.io/badge/Deploy%20to%20Render-ff2b2b?style=for-the-badge&logo=render" />
   </a>
 </p>
 
-> Set deployment type as: **Background Worker**  
-🎥 [Watch Tutorial](https://youtu.be/bj59ynAaa3Y?si=cJpQPr1XaP7q-tDF)
+
 
 ---
 
-### 📦 Deploy on Hosting Panels
+### 🟩 Railway
+
+<p align="center">
+  <a href="https://railway.app/login">
+    <img src="https://img.shields.io/badge/Create%20Railway%20Account-0e2d57?style=for-the-badge&logo=railway" />
+  </a>
+  <a href="https://railway.app/new/template?template=https://github.com/gifteddaves/Dave-Md-V1">
+    <img src="https://img.shields.io/badge/Deploy%20to%20Railway-black?style=for-the-badge&logo=railway" />
+  </a>
+</p>
+
+---
+
+### 🟢 TalkDrove
+
+<p align="center">
+  <a href="https://talkdrove.com/login">
+    <img src="https://img.shields.io/badge/Sign%20in%20to%20TalkDrove-blue?style=for-the-badge&logo=google" />
+  </a>
+  <a href="https://talkdrove.com/deploy">
+    <img src="https://img.shields.io/badge/Deploy%20on%20TalkDrove-green?style=for-the-badge&logo=node.js" />
+  </a>
+</p>
+
+---
+
+### 🧰 Hosting Panels
 
 <p align="center">
   <a href="https://bot-hosting.net/?aff=1259151615210819614">
-    <img src="https://img.shields.io/badge/Bot Hosting-25D366?style=for-the-badge&logo=whatsapp" />
+    <img src="https://img.shields.io/badge/Bot%20Hosting-25D366?style=for-the-badge&logo=whatsapp" />
   </a>
   <a href="https://daki.cc/?aff=1259151615210819614">
-    <img src="https://img.shields.io/badge/Daki Panel-ffcc00?style=for-the-badge&logo=zap" />
+    <img src="https://img.shields.io/badge/Daki%20Panel-ffcc00?style=for-the-badge&logo=zap" />
   </a>
   <a href="https://solarhosting.cc/?aff=1259151615210819614">
-    <img src="https://img.shields.io/badge/Solar Hosting-f4d03f?style=for-the-badge&logo=sun" />
+    <img src="https://img.shields.io/badge/Solar%20Hosting-f4d03f?style=for-the-badge&logo=sun" />
   </a>
 </p>
 
-📦 Download ZIP File:  
-➡️ [Click Here](https://www.mediafire.com/file/8mz179kpfz2x5az/DAVE_XMD.zip/file)
-
 ---
 
-### 🖥️ Deploy on Scalingo
+### 📦 Download ZIP Version
 
-<details>
-<summary>Click to Open</summary>
-
-- 🌐 [Scalingo Signup](https://scalingo.com/)
-- 🎥 [Watch Tutorial](https://youtu.be/XAEvjrFIoiw?si=zdVjdtav3ZtsjTRz)
-
-</details>
+<p align="center">
+  <a href="https://www.mediafire.com/file/8mz179kpfz2x5az/DAVE_XMD.zip/file">
+    <img src="https://img.shields.io/badge/Download%20ZIP-MediaFire-blue?style=for-the-badge&logo=mediafire" />
+  </a>
+  <a href="https://scalingo.com/">
+    <img src="https://img.shields.io/badge/Deploy%20on%20Scalingo-orange?style=for-the-badge&logo=cloudflare" />
+  </a>
+</p>
 
 ---
 
@@ -99,13 +120,13 @@
 
 <p align="center">
   <a href="https://wa.me/254104260236">
-    <img src="https://img.shields.io/badge/Contact%20Me-WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+    <img src="https://img.shields.io/badge/Contact%20Me-WhatsApp-25D366?style=for-the-badge&logo=whatsapp" />
   </a>
   <a href="https://chat.whatsapp.com/CaPeB0sVRTrL3aG6asYeAC">
-    <img src="https://img.shields.io/badge/Join Group-green?style=for-the-badge&logo=whatsapp&logoColor=white" />
+    <img src="https://img.shields.io/badge/Join%20Group-green?style=for-the-badge&logo=whatsapp" />
   </a>
   <a href="https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k">
-    <img src="https://img.shields.io/badge/Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+    <img src="https://img.shields.io/badge/WhatsApp%20Channel-25D366?style=for-the-badge&logo=whatsapp" />
   </a>
   <a href="https://www.youtube.com/@davlodavlo19">
     <img src="https://img.shields.io/badge/YouTube-davlodavlo19-red?style=for-the-badge&logo=youtube" />
@@ -114,10 +135,13 @@
     <img src="https://img.shields.io/badge/GitHub-gifteddaves-black?style=for-the-badge&logo=github" />
   </a>
   <a href="https://www.instagram.com/_gifted_dave/profilecard/?igsh=MWFjZHdmcm4zMGkzNw==">
-    <img src="https://img.shields.io/badge/Instagram-_gifted_dave-E4405F?style=for-the-badge&logo=instagram&logoColor=white" />
+    <img src="https://img.shields.io/badge/Instagram-_gifted_dave-E4405F?style=for-the-badge&logo=instagram" />
   </a>
   <a href="https://t.me/Digladoo">
-    <img src="https://img.shields.io/badge/Telegram-Digladoo-0088cc?style=for-the-badge&logo=telegram&logoColor=white" />
+    <img src="https://img.shields.io/badge/Telegram-Digladoo-0088cc?style=for-the-badge&logo=telegram" />
+  </a>
+  <a href="https://www.facebook.com/Davlodavlo19">
+    <img src="https://img.shields.io/badge/Facebook-Davlodavlo19-1877F2?style=for-the-badge&logo=facebook" />
   </a>
 </p>
 
