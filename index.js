@@ -1,9 +1,11 @@
-// 📦 Core dependencies
 const express = require('express');
+const app = express();
 const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
+const bodyParser = require("body-parser");
 const { Boom } = require('@hapi/boom');
+require('events').EventEmitter.defaultMaxListeners = 500;
 
 // 📲 Baileys setup
 const {
@@ -12,21 +14,21 @@ const {
   DisconnectReason
 } = require('@whiskeysockets/baileys');
 
-// 🌍 Global Configs & Bot Logic
-require('./settings');
-require('./Dave-Md-V1.js'); // Main bot logic
-
 // 🔐 Session Auth
 const sessionPath = path.join(__dirname, 'session');
 if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath);
 const sessionFile = path.join(sessionPath, 'creds.json');
 const { state, saveState } = useSingleFileAuthState(sessionFile);
 
+// 🌍 Global Configs & Bot Logic
+require('./settings');
+require('./Dave-Md-V1.js'); // Bot logic file
+
 // 🤖 Start Bot
 async function startBot() {
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true // QR only printed on local, ignored in cloud
+    printQRInTerminal: true
   });
 
   sock.ev.on('creds.update', saveState);
@@ -44,7 +46,6 @@ async function startBot() {
   sock.ev.on('messages.upsert', async ({ messages }) => {
     const m = messages[0];
     if (!m?.message || m.key.fromMe) return;
-
     const sender = m.key.remoteJid;
     const text = m.message?.conversation || m.message?.extendedTextMessage?.text;
     if (text?.toLowerCase() === 'hi' || text?.toLowerCase() === 'hello') {
@@ -55,33 +56,37 @@ async function startBot() {
 startBot();
 
 // 🌐 Express Setup
-const app = express();
+const PORT = process.env.PORT || 8000;
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// 🔁 API Routes
+// 🔁 Routes
 try {
-  const pairHandler = require('./api/pair');
-  const qrHandler = require('./api/qr');
-
-  app.use('/api/pair', pairHandler);
-  app.use('/api/qr', qrHandler);
+  const pairHandler = require('./pair');
+  const qrHandler = require('./qr');
+  app.use('/pair', pairHandler);
+  app.use('/qr', qrHandler);
 } catch (e) {
-  console.warn('⚠️ Optional API routes not found or not used in this build.');
+  console.warn('⚠️ Optional API routes not found or skipped.');
 }
 
-// 🖼️ Static Pages
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/pair', (_, res) => res.sendFile(path.join(__dirname, 'public/pair.html')));
-app.get('/', (_, res) => res.sendFile(path.join(__dirname, 'public/index.html')));
+// 🖼️ Static Page Routes
+app.get('/pair', (_, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'pair.html'));
+});
+
+app.get('/', (_, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ✅ Health Check
 app.get('/health', (_, res) => {
-  res.send('🟢 Dave-Md-V1 Pairing Backend Running');
+  res.send('🟢 Dave-Md-V1 backend running');
 });
 
-// 🚀 Start Server
-const PORT = process.env.PORT || 3000;
+// 🚀 Server Listen
 app.listen(PORT, () => {
   console.log(`🌍 Server running on http://localhost:${PORT}`);
 });
