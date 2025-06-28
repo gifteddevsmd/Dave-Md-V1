@@ -1,154 +1,259 @@
-require('./settings')
-const { default: makeWASocket, useMultiFileAuthState, DisconnectReason, makeCacheableSignalKeyStore, Browsers, fetchLatestBaileysVersion, jidNormalizedUser, makeInMemoryStore } = require('@whiskeysockets/baileys')
-const fs = require('fs')
-const pino = require('pino')
-const chalk = require('chalk')
-const readline = require('readline')
-const { Boom } = require('@hapi/boom')
-const NodeCache = require("node-cache")
-const { File } = require('megajs')
-const { Low, JSONFile } = require('./lib/lowdb')
-const _ = require('lodash')
-const path = require('path')
-const { color } = require('./lib/color')
-const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./lib/exif')
-const { smsg, isUrl, generateMessageTag, getBuffer, getSizeMedia, fetchJson, await, sleep } = require('./lib/function')
-const { GroupUpdate, GroupParticipantsUpdate, MessagesUpsert, Solving } = require('./src/message')
+require('./settings');
+const fs = require('fs');
+const pino = require('pino');
+const { color } = require('./lib/color');
+const path = require('path');
+const axios = require('axios');
+const chalk = require('chalk');
+const readline = require('readline');
+const { File } = require('megajs');
+const FileType = require('file-type');
+const { exec } = require('child_process');
+const { Boom } = require('@hapi/boom');
+const NodeCache = require('node-cache');
+const PhoneNumber = require('awesome-phonenumber');
+const { default: makeWASocket, useMultiFileAuthState, Browsers, DisconnectReason, makeCacheableSignalKeyStore, proto, getAggregateVotesInPollMessage, jidNormalizedUser } = require('@whiskeysockets/baileys');
+const { makeInMemoryStore } = require('@rodrigogs/baileys-store');
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-const question = (text) => new Promise(resolve => rl.question(text, resolve))
+let phoneNumber = "254104260236";
+const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code");
+const useMobile = process.argv.includes("--mobile");
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
+const question = (text) => new Promise((resolve) => rl.question(text, resolve));
+let owner = JSON.parse(fs.readFileSync('./src/owner.json'));
 
-const phoneNumber = "254104260236"
-const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
-const useMobile = process.argv.includes("--mobile")
-const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
+global.api = (name, path = '/', query = {}, apikeyqueryname) =>
+  (name in global.APIs ? global.APIs[name] : name) +
+  path +
+  (query || apikeyqueryname
+    ? '?' +
+      new URLSearchParams(
+        Object.entries({
+          ...query,
+          ...(apikeyqueryname
+            ? { [apikeyqueryname]: global.APIKeys[name in global.APIs ? global.APIs[name] : name] }
+            : {}),
+        })
+      )
+    : '');
 
-global.db = new Low(new JSONFile('src/database.json'))
-global.DATABASE = global.db
+const DataBase = require('./src/database');
+const database = new DataBase();
 
-async function loadDatabase() {
-  if (global.db.READ)
-    return new Promise(resolve =>
-      setInterval(() =>
-        (!global.db.READ ? (clearInterval(this), resolve(global.db.data == null ? loadDatabase() : global.db.data)) : null), 1000))
-  if (global.db.data !== null) return
-  global.db.READ = true
-  await global.db.read()
-  global.db.READ = false
-  global.db.data = {
-    users: {},
-    database: {},
-    chats: {},
-    game: {},
-    settings: {},
-    ...(global.db.data || {})
+(async () => {
+  const loadData = await database.read();
+  if (loadData && Object.keys(loadData).length === 0) {
+    global.db = {
+      sticker: {},
+      users: {},
+      groups: {},
+      database: {},
+      settings: {},
+      others: {},
+      ...(loadData || {}),
+    };
+    await database.write(global.db);
+  } else {
+    global.db = loadData;
   }
-  global.db.chain = _.chain(global.db.data)
-}
-loadDatabase()
-setInterval(async () => {
-  if (global.db.data) await global.db.write()
-}, 30 * 1000)
 
-const sessionDir = path.join(__dirname, 'session')
-const credsPath = path.join(sessionDir, 'creds.json')
-const owner = JSON.parse(fs.readFileSync('./src/owner.json'))
+  setInterval(async () => {
+    if (global.db) await database.write(global.db);
+  }, 30000);
+})();
 
-async function downloadSessionData() {
+const { GroupUpdate, GroupParticipantsUpdate, MessagesUpsert, Solving } = require('./src/message');
+const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./lib/exif');
+const { isUrl, generateMessageTag, getBuffer, getSizeMedia, fetchJson, await, sleep } = require('./lib/function');
+
+const sessionDir = path.join(__dirname, 'session');
+const credsPath = path.join(sessionDir, 'creds.json');
+
+async function sessionLoader() {
   try {
-    await fs.promises.mkdir(sessionDir, { recursive: true })
+    await fs.promises.mkdir(sessionDir, { recursive: true });
+
     if (!fs.existsSync(credsPath)) {
-      if (!global.SESSION_ID) return console.log(color(`Session ID not found. Wait to enter your number.`, 'red'))
-      const sessdata = global.SESSION_ID.split("DaveMd-V1~")[1]
-      const filer = File.fromURL(`https://mega.nz/file/${sessdata}`)
+      if (!global.SESSION_ID) {
+        return console.log(color(`Session ID and creds.json not found!\n\nPlease wait to enter your number.`, 'red'));
+      }
+
+      const sessionData = global.SESSION_ID.split("Dave~")[1];
+      const filer = File.fromURL(`https://mega.nz/file/${sessionData}`);
+
       const data = await new Promise((resolve, reject) => {
-        filer.download((err, data) => err ? reject(err) : resolve(data))
-      })
-      await fs.promises.writeFile(credsPath, data)
-      console.log(color(`Session saved. Booting...`, 'green'))
+        filer.download((err, data) => {
+          if (err) reject(err);
+          else resolve(data);
+        });
+      });
+
+      await fs.promises.writeFile(credsPath, data);
+      console.log(color(`✅ Session downloaded successfully. Starting bot...`, 'green'));
+      await startXliconBot();
     }
-  } catch (err) {
-    console.error('Error downloading session:', err)
+  } catch (error) {
+    console.error('❌ Error retrieving session:', error);
   }
 }
 
-async function startDaveMdBot() {
-  let { version } = await fetchLatestBaileysVersion()
-  const { state, saveCreds } = await useMultiFileAuthState('./session')
-  const msgRetryCounterCache = new NodeCache()
+console.log(
+  chalk.cyan(`
+██████╗  █████╗ ██╗   ██╗███████╗    ███╗   ███╗██████╗ 
+██╔══██╗██╔══██╗██║   ██║██╔════╝    ████╗ ████║██╔══██╗
+██████╔╝███████║██║   ██║█████╗      ██╔████╔██║██████╔╝
+██╔═══╝ ██╔══██║╚██╗ ██╔╝██╔══╝      ██║╚██╔╝██║██╔═══╝ 
+██║     ██║  ██║ ╚████╔╝ ███████╗    ██║ ╚═╝ ██║██║     
+╚═╝     ╚═╝  ╚═╝  ╚═══╝  ╚══════╝    ╚═╝     ╚═╝╚═╝     
+  `)
+);
 
-  const DaveMdBot = makeWASocket({
+console.log(chalk.white.bold(`${chalk.gray.bold("📃  Information :")}         
+✉️  Script : Dave-Md-V1
+✉️  Author : Gifted Dave
+✉️  WhatsApp : https://wa.me/254104260236
+✉️  GitHub : https://github.com/gifteddaves
+
+${chalk.green.bold("Ｐｏｗｅｒｅｄ Ｂｙ ＤＡＶＥ-ＭＤ-Ｖ１ ＢＯＴ")}\n`));
+
+async function startXliconBot() {
+  let version = [2, 3000, 1015901307];
+
+  const { state, saveCreds } = await useMultiFileAuthState(`./session`);
+  const msgRetryCounterCache = new NodeCache();
+
+  const XliconBotInc = makeWASocket({
     logger: pino({ level: 'silent' }),
     printQRInTerminal: !pairingCode,
-    browser: Browsers.macOS('Safari'),
+    browser: Browsers.windows('Firefox'),
     auth: {
       creds: state.creds,
-      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }))
+      keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })),
     },
     version,
     markOnlineOnConnect: true,
     generateHighQualityLinkPreview: true,
-    getMessage: async key => {
-      const jid = jidNormalizedUser(key.remoteJid)
-      const msg = await store.loadMessage(jid, key.id)
-      return msg?.message || ""
+    getMessage: async (key) => {
+      let jid = jidNormalizedUser(key.remoteJid);
+      let msg = await store.loadMessage(jid, key.id);
+      return msg?.message || "";
     },
-    msgRetryCounterCache
-  })
+    msgRetryCounterCache,
+    defaultQueryTimeoutMs: undefined,
+  });
 
-  store.bind(DaveMdBot.ev)
+  store.bind(XliconBotInc.ev);
 
-  if (pairingCode && !DaveMdBot.authState.creds.registered) {
-    let phone = await question(color(`Enter your WhatsApp number starting with country code (e.g., 254): `, 'green'))
-    phone = phone.replace(/[^0-9]/g, '')
-    const code = await DaveMdBot.requestPairingCode(phone)
-    console.log(chalk.black(chalk.bgGreen(`✅ Pairing Code : ${code}`)))
+  if (pairingCode && !XliconBotInc.authState.creds.registered) {
+    if (useMobile) throw new Error('Cannot use pairing code with mobile API');
+
+    let phoneNumber;
+    phoneNumber = await question('Enter your number starting with country code (e.g., 254):\n');
+    phoneNumber = phoneNumber.trim();
+
+    setTimeout(async () => {
+      const code = await XliconBotInc.requestPairingCode(phoneNumber);
+      console.log(chalk.black(chalk.bgGreen(`🎁 Pairing Code : ${code}`)));
+    }, 3000);
   }
 
-  DaveMdBot.ev.on('connection.update', async (update) => {
-    const { connection, lastDisconnect } = update
-    const reason = new Boom(lastDisconnect?.error)?.output.statusCode
+  store.bind(XliconBotInc.ev);
+  await Solving(XliconBotInc, store);
+
+  XliconBotInc.ev.on('creds.update', saveCreds);
+  XliconBotInc.ev.on('connection.update', async (update) => {
+    const { connection, lastDisconnect } = update;
+    const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
 
     if (connection === 'close') {
       switch (reason) {
-        case DisconnectReason.badSession:
-        case DisconnectReason.connectionClosed:
         case DisconnectReason.connectionLost:
+        case DisconnectReason.connectionClosed:
         case DisconnectReason.restartRequired:
         case DisconnectReason.timedOut:
-          console.log('Reconnecting...')
-          return startDaveMdBot()
+          console.log('Reconnecting...');
+          return startXliconBot();
+        case DisconnectReason.badSession:
         case DisconnectReason.loggedOut:
-          console.log('Logged out. Please delete session and scan again.')
-          process.exit(1)
+          console.log('Session error. Please delete session and re-link.');
+          process.exit(1);
+        case DisconnectReason.connectionReplaced:
+          console.log('Another session replaced this one. Logging out...');
+          XliconBotInc.logout();
+          break;
         default:
-          console.log('Unknown disconnect reason:', reason)
-          process.exit(1)
+          console.log('Unknown disconnect reason:', reason);
       }
     }
+
     if (connection === 'open') {
-      console.log(color(`✅ Connected as ${DaveMdBot.user.name || DaveMdBot.user.id}`, 'green'))
+      console.log('✅ Connected as: ' + JSON.stringify(XliconBotInc.user, null, 2));
     }
-  })
+  });
 
-  DaveMdBot.ev.on('creds.update', saveCreds)
-  DaveMdBot.ev.on('messages.upsert', async (msg) => await MessagesUpsert(DaveMdBot, msg, store))
-  DaveMdBot.ev.on('group-participants.update', async (update) => await GroupParticipantsUpdate(DaveMdBot, update))
-  DaveMdBot.ev.on('groups.update', async (update) => await GroupUpdate(DaveMdBot, update, store))
+  XliconBotInc.ev.on('contacts.update', (update) => {
+    for (let contact of update) {
+      let id = XliconBotInc.decodeJid(contact.id);
+      if (store && store.contacts) store.contacts[id] = { id, name: contact.notify };
+    }
+  });
 
-  return DaveMdBot
+  XliconBotInc.ev.on('call', async (call) => {
+    let botNumber = await XliconBotInc.decodeJid(XliconBotInc.user.id);
+    let anticall = global.db.settings[botNumber]?.anticall;
+    if (anticall) {
+      for (let id of call) {
+        if (id.status === 'offer') {
+          let msg = await XliconBotInc.sendMessage(id.from, {
+            text: `🚫 Calls are not allowed!\nPlease contact the owner @${id.from.split('@')[0]}.`,
+            mentions: [id.from],
+          });
+          await XliconBotInc.sendContact(id.from, global.owner, msg);
+          await XliconBotInc.rejectCall(id.id, id.from);
+        }
+      }
+    }
+  });
+
+  XliconBotInc.ev.on('groups.update', async (update) => {
+    await GroupUpdate(XliconBotInc, update, store);
+  });
+
+  XliconBotInc.ev.on('group-participants.update', async (update) => {
+    await GroupParticipantsUpdate(XliconBotInc, update);
+  });
+
+  XliconBotInc.ev.on('messages.upsert', async (message) => {
+    await MessagesUpsert(XliconBotInc, message, store);
+  });
+
+  return XliconBotInc;
 }
 
 async function initStart() {
-  if (!fs.existsSync(credsPath)) await downloadSessionData()
-  await startDaveMdBot()
+  if (fs.existsSync(credsPath)) {
+    console.log(color("✅ Creds.json found. Starting bot...", 'yellow'));
+    await startXliconBot();
+  } else {
+    const sessionCheck = await sessionLoader();
+    if (sessionCheck) {
+      console.log("✅ Session downloaded. Starting bot...");
+      await startXliconBot();
+    } else {
+      if (!global.SESSION_ID) {
+        console.log(color("❌ SESSION_ID missing! Please provide one or wait to enter your number.", 'red'));
+        await startXliconBot();
+      }
+    }
+  }
 }
-initStart()
+initStart();
 
-let file = require.resolve(__filename)
+let file = require.resolve(__filename);
 fs.watchFile(file, () => {
-  fs.unwatchFile(file)
-  console.log(chalk.redBright(`Update ${__filename}`))
-  delete require.cache[file]
-  require(file)
-})
+  fs.unwatchFile(file);
+  console.log(chalk.redBright(`🔁 Update detected in ${__filename}`));
+  delete require.cache[file];
+  require(file);
+});
