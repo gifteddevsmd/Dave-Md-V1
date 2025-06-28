@@ -1,0 +1,38 @@
+name: dave-md-v1-bot
+services:
+  - name: dave-md-v1
+    type: web
+    dockerfile_path: ./Dockerfile
+    ports:
+      - port: 3000
+        protocol: http
+    routes:
+      - path: /
+    build_command: npm install
+    run_command: npm run start
+    env:
+      - key: SESSION_ID
+        sync: false
+      - key: BOT_NAME
+        value: Dave-Md-V1
+      - key: OWNER_NUMBER
+        value: 254104260236
+      - key: OWNER_NAME
+        value: Gifted Dave
+      - key: PREMIUM_NUMBER
+        value: 254104260236
+      - key: GITHUB_USERNAME
+        value: gifteddaves
+      - key: WEBSITE_URL
+        value: https://youtube.com/@gifteddave
+      - key: WHATSAPP_CHANNEL
+        value: https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k
+      - key: MESSAGE
+        value: ✅ Session linked successfully to Dave-Md-V1
+      - key: PORT
+        value: "3000"
+      - key: MONGO_URI
+        sync: false
+    instance_type: micro
+    regions:
+      - fra
