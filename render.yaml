@@ -1,12 +1,12 @@
 services:
-  - type: web
-    name: dave-md-v1-pairing
+  - type: worker
+    name: dave-md-v1
     env: node
     plan: free
     branch: main
 
     buildCommand: npm install
-    startCommand: node index.js
+    startCommand: node start.js
 
     envVars:
       - key: SESSION_ID
@@ -27,9 +27,5 @@ services:
         value: https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k
       - key: MESSAGE
         value: ✅ Session linked successfully to Dave-Md-V1
-      - key: PORT
-        value: 3000
       - key: MONGO_URI
-        sync: false
-      - key: HEROKU_API_KEY
         sync: false
