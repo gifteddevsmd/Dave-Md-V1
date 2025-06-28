@@ -86,6 +86,19 @@
 </p>
 
 ---
+### 🟢 Koyeb
+
+<p align="center">
+  <a href="https://app.koyeb.com/login">
+    <img src="https://img.shields.io/badge/Sign%20in%20to%20Koyeb-blue?style=for-the-badge&logo=koyeb" />
+  </a>
+  <a href="https://app.koyeb.com/new">
+    <img src="https://img.shields.io/badge/Deploy%20on%20Koyeb-green?style=for-the-badge&logo=node.js" />
+  </a>
+</p>
+
+---
+
 
 ### 🧰 Hosting Panels
 
