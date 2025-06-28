@@ -24,51 +24,62 @@
 //*
 
 require('../settings');
-const fs = require('fs');
-const path = require('path');
 const chalk = require('chalk');
-const moment = require('moment-timezone');
-const { proto, getContentType, downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const PhoneNumber = require('awesome-phonenumber');
-const { getBuffer, isUrl } = require('../lib/function');
-const prem = require('./premium');
+const { getContentType } = require('@whiskeysockets/baileys');
 
-// Handler for group metadata changes
+// Handle group metadata events
 async function GroupUpdate(conn, update) {
-  // Future support for group name/photo/description changes
   console.log(chalk.yellow('[GROUP UPDATE]:'), update);
 }
 
-// Handler for participant events (add, remove, promote, demote)
+// Handle group participant changes
 async function GroupParticipantsUpdate(conn, update) {
   console.log(chalk.blueBright('[PARTICIPANT UPDATE]:'), update);
-  // You can customize messages for welcome, goodbye, promote, demote
 }
 
-// Handler for new incoming messages
+// Message handling logic
 async function MessagesUpsert(conn, m, store) {
   try {
     if (!m.type || m.type !== 'notify') return;
     for (const msg of m.messages) {
-      if (!msg.message || msg.key && msg.key.remoteJid === 'status@broadcast') continue;
+      if (!msg.message || (msg.key && msg.key.remoteJid === 'status@broadcast')) continue;
 
-      msg.message = msg.message || {};
       const contentType = getContentType(msg.message);
       const message = msg.message[contentType];
-
-      // Logging messages for debugging
-      console.log(chalk.green('[MESSAGE RECEIVED]:'), msg.key.remoteJid, contentType);
-
-      // Check for commands and process
       const from = msg.key.remoteJid;
       const isGroup = from.endsWith('@g.us');
       const sender = isGroup ? msg.key.participant : msg.key.remoteJid;
 
-      // Example: simple ping command
+      console.log(chalk.green('[MESSAGE RECEIVED]:'), from, contentType);
+
       if (contentType === 'conversation' || contentType === 'extendedTextMessage') {
         const text = contentType === 'conversation' ? message : message.text;
-        if (text.toLowerCase() === 'ping') {
-          await conn.sendMessage(from, { text: '🏓 Pong! Dave-Md-V1 is alive.' }, { quoted: msg });
+        const prefix = '.';
+        const cmd = text.trim().toLowerCase();
+
+        if (cmd === 'ping' || cmd === `${prefix}ping`) {
+          const start = Date.now();
+          const end = Date.now();
+          await conn.sendMessage(from, {
+            text: `🏓 Pong • ${end - start}ms\n🧠 Dave-Md-V1`,
+          }, { quoted: msg });
+        }
+
+        // Submenus
+        if (cmd === `${prefix}ownermenu`) {
+          await conn.sendMessage(from, { text: global.ownermenu(prefix) }, { quoted: msg });
+        }
+        if (cmd === `${prefix}groupmenu`) {
+          await conn.sendMessage(from, { text: global.groupmenu(prefix) }, { quoted: msg });
+        }
+        if (cmd === `${prefix}downloadmenu`) {
+          await conn.sendMessage(from, { text: global.downloadmenu(prefix) }, { quoted: msg });
+        }
+        if (cmd === `${prefix}animemenu`) {
+          await conn.sendMessage(from, { text: global.animemenu(prefix) }, { quoted: msg });
+        }
+        if (cmd === `${prefix}othermenu`) {
+          await conn.sendMessage(from, { text: global.othermenu(prefix) }, { quoted: msg });
         }
       }
     }
@@ -77,15 +88,61 @@ async function MessagesUpsert(conn, m, store) {
   }
 }
 
-// Optional startup or scheduled logic
+// Startup logic
 async function Solving(conn, store) {
   console.log(chalk.green('[DAVE-MD] Bot started and monitoring messages...'));
 }
 
-// Exporting all core handlers
+// Export all
 module.exports = {
   GroupUpdate,
   GroupParticipantsUpdate,
   MessagesUpsert,
   Solving
 };
+
+//════════════════════════════════════════════════════════════════════════════//
+// 🌟 SUBMENU TEMPLATES — Dave-Md-V1
+//════════════════════════════════════════════════════════════════════════════//
+global.ownermenu = (prefix) => `
+┏━━❖ ᴏᴡɴᴇʀ ᴍᴇɴᴜ ❖━━┓
+┃⿻ ${prefix}setppbot
+┃⿻ ${prefix}setprefix
+┃⿻ ${prefix}shutdown
+┃⿻ ${prefix}bc
+┃⿻ ${prefix}join
+┗━━━━━━━━━━━━━━┛`;
+
+global.groupmenu = (prefix) => `
+┏━━❖ ɢʀᴏᴜᴘ ᴍᴇɴᴜ ❖━━┓
+┃⿻ ${prefix}add
+┃⿻ ${prefix}kick
+┃⿻ ${prefix}promote
+┃⿻ ${prefix}demote
+┃⿻ ${prefix}setname
+┃⿻ ${prefix}setdesc
+┗━━━━━━━━━━━━━━┛`;
+
+global.downloadmenu = (prefix) => `
+┏━━❖ ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴇɴᴜ ❖━━┓
+┃⿻ ${prefix}ytmp3
+┃⿻ ${prefix}ytmp4
+┃⿻ ${prefix}tiktok
+┃⿻ ${prefix}instagram
+┗━━━━━━━━━━━━━━┛`;
+
+global.animemenu = (prefix) => `
+┏━━❖ ᴀɴɪᴍᴇ ᴍᴇɴᴜ ❖━━┓
+┃⿻ ${prefix}anime
+┃⿻ ${prefix}manga
+┃⿻ ${prefix}neko
+┃⿻ ${prefix}waifu
+┗━━━━━━━━━━━━━━┛`;
+
+global.othermenu = (prefix) => `
+┏━━❖ ᴏᴛʜᴇʀ ᴍᴇɴᴜ ❖━━┓
+┃⿻ ${prefix}ping
+┃⿻ ${prefix}owner
+┃⿻ ${prefix}report
+┃⿻ ${prefix}runtime
+┗━━━━━━━━━━━━━━┛`;
