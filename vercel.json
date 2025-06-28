@@ -1,4 +1,6 @@
 {
+  "name": "Dave-Md-V1-Pairing",
+  "version": 2,
   "builds": [
     {
       "src": "api/pair.js",
@@ -14,5 +16,14 @@
     { "src": "/api/qr", "dest": "/api/qr.js" },
     { "src": "/(.*\\.(?:js|css|png|jpg|jpeg|gif|svg|ico|html))", "dest": "/public/$1" },
     { "src": "/(.*)", "dest": "/public/index.html" }
-  ]
+  ],
+  "env": {
+    "BOT_NAME": "Dave-Md-V1",
+    "OWNER_NAME": "Gifted Dave",
+    "OWNER_NUMBER": "254104260236",
+    "MESSAGE": "✅ Session linked successfully to Dave-Md-V1",
+    "WEBSITE_URL": "https://youtube.com/@davlidavlo19",
+    "WHATSAPP_CHANNEL": "https://whatsapp.com/channel/0029VbApvFQ2Jl84lhONkc3k",
+    "GITHUB_USERNAME": "gifteddaves"
+  }
 }
