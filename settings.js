@@ -8,8 +8,7 @@ global.socialm = process.env.GITHUB_USERNAME || "GitHub: gifteddaves";
 global.location = process.env.LOCATION || "Kenya, Nairobi";
 
 //~~~~~~~~< Session and Bot Details >~~~~~~~~~~~~~\\
-// Either use environment SESSION_ID (for Railway/Vercel), or fallback to empty (for code-pairing)
-global.SESSION_ID = process.env.SESSION_ID || ''; // Will be loaded dynamically from Baileys session folder
+global.SESSION_ID = process.env.SESSION_ID || ''; // Will be loaded dynamically from Baileys session folder if empty
 
 global.botname = process.env.BOT_NAME || 'Dave-Md-V1';
 global.ownernumber = [process.env.OWNER_NUMBER || '254104260236'];
@@ -54,13 +53,14 @@ global.uang = {
   vip: parseInt(process.env.VIP_UANG || 10000000)
 };
 
+//~~~~~~~~< Messages >~~~~~~~~~~~\\
 global.mess = {
   error: process.env.ERROR_MESSAGE || '❌ Error occurred!',
   nsfw: process.env.NSFW_MESSAGE || 'NSFW is disabled in this group. Ask the admin to enable it.',
   done: process.env.DONE_MESSAGE || '✅ Done!'
 };
 
-//~~~~~~~~< Runtime Storage >~~~~~~~~~~~\\
+//~~~~~~~~< Runtime Memory >~~~~~~~~~~~\\
 global.bot = {
   limit: 0,
   uang: 0
@@ -74,11 +74,11 @@ global.game = {
   tebakbom: {},
 };
 
-//~~~~~~~~~~~~~~~< PROCESS WATCHER >~~~~~~~~~~~~~~~\\
+//~~~~~~~~~~~~~~~< FILE WATCHER >~~~~~~~~~~~~~~~\\
 let file = require.resolve(__filename);
 fs.watchFile(file, () => {
   fs.unwatchFile(file);
-  console.log(chalk.redBright(`✅ ${__filename} updated`));
+  console.log(chalk.redBright(`✅ '${__filename}' updated.`));
   delete require.cache[file];
   require(file);
 });
