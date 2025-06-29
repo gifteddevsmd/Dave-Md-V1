@@ -1,148 +1,154 @@
-//══════════════════════════════════════════════════════════════════════════════════════════════════════//
-//                                                                                                      //
-//                                     𝗗𝗔𝗩𝗘-𝗠𝗗-𝗩𝟭  𝐁𝐎𝐓                                                  //
-//                                                                                                      //
-//                                          Ｖ：1.0                                                      //
-//                                                                                                      //
-//               ██╗  ██╗██╗     ██╗ ██████╗ ██████╗ ███╗   ██╗      ██╗   ██╗██╗  ██╗                  //
-//                ██╗██╔╝██║     ██║██╔════╝██╔═══██╗████╗  ██║      ██║   ██║██║  ██║                  //
-//                ╚███╔╝ ██║     ██║██║     ██║   ██║██╔██╗ ██║█████╗██║   ██║███████║                  //
-//                ██╔██╗ ██║     ██║██║     ██║   ██║██║╚██╗██║╚════╝╚██╗ ██╔╝╚════██║                  //
-//               ██╔╝ ██╗███████╗██║╚██████╗╚██████╔╝██║ ╚████║       ╚████╔╝      ██║                  //
-//                ═╝  ╚═╝╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝        ╚═══╝       ╚═╝                  //
-//                                                                                                      //
-//══════════════════════════════════════════════════════════════════════════════════════════════════════//
+//══════════════════════════════════════════════════════════════════════════════════════//
+//                             💠 DAVE-MD-V1 - MESSAGE HANDLER 💠                         //
+//══════════════════════════════════════════════════════════════════════════════════════//
 
-//*
-//  * @project_name : Dave-Md-V1
-//  * @author : gifteddaves
-//  * @github : https://github.com/gifteddaves
-//  * @whatsapp : https://wa.me/254104260236
-//  * @telegram : https://t.me/Digladoo
-//  * @instagram : https://www.instagram.com/_gifted_dave/profilecard/?igsh=MWFjZHdmcm4zMGkzNw==
-//  * @description : Multi-functional WhatsApp User Bot based on Baileys & XLICON logic.
-//*
+require('../settings')
+const chalk = require('chalk')
+const { getContentType } = require('@whiskeysockets/baileys')
 
-require('../settings');
-const chalk = require('chalk');
-const { getContentType } = require('@whiskeysockets/baileys');
-
-// Handle group metadata events
+// Group metadata updates
 async function GroupUpdate(conn, update) {
-  console.log(chalk.yellow('[GROUP UPDATE]:'), update);
+  console.log(chalk.yellow('[GROUP UPDATE]:'), update)
 }
 
-// Handle group participant changes
+// Group participant changes
 async function GroupParticipantsUpdate(conn, update) {
-  console.log(chalk.blueBright('[PARTICIPANT UPDATE]:'), update);
+  console.log(chalk.blue('[PARTICIPANT UPDATE]:'), update)
 }
 
-// Message handling logic
+// Message Upsert Handler
 async function MessagesUpsert(conn, m, store) {
   try {
-    if (!m.type || m.type !== 'notify') return;
+    if (!m.type || m.type !== 'notify') return
     for (const msg of m.messages) {
-      if (!msg.message || (msg.key && msg.key.remoteJid === 'status@broadcast')) continue;
+      if (!msg.message || msg.key.remoteJid === 'status@broadcast') continue
 
-      const contentType = getContentType(msg.message);
-      const message = msg.message[contentType];
-      const from = msg.key.remoteJid;
-      const isGroup = from.endsWith('@g.us');
-      const sender = isGroup ? msg.key.participant : msg.key.remoteJid;
+      const contentType = getContentType(msg.message)
+      const message = msg.message[contentType]
+      const from = msg.key.remoteJid
+      const isGroup = from.endsWith('@g.us')
+      const sender = isGroup ? msg.key.participant : from
 
-      console.log(chalk.green('[MESSAGE RECEIVED]:'), from, contentType);
+      const prefix = '.'
+      const body =
+        contentType === 'conversation'
+          ? message
+          : contentType === 'extendedTextMessage'
+          ? message.text
+          : ''
+      const command = body.startsWith(prefix)
+        ? body.slice(prefix.length).trim().split(' ')[0].toLowerCase()
+        : ''
+      const args = body.trim().split(/ +/).slice(1)
 
-      if (contentType === 'conversation' || contentType === 'extendedTextMessage') {
-        const text = contentType === 'conversation' ? message : message.text;
-        const prefix = '.';
-        const cmd = text.trim().toLowerCase();
+      console.log(chalk.green('[MESSAGE RECEIVED]:'), from, contentType)
 
-        if (cmd === 'ping' || cmd === `${prefix}ping`) {
-          const start = Date.now();
-          const end = Date.now();
-          await conn.sendMessage(from, {
-            text: `🏓 Pong • ${end - start}ms\n🧠 Dave-Md-V1`,
-          }, { quoted: msg });
-        }
+      // COMMAND HANDLERS
+      switch (command) {
+        case 'ping':
+          const start = Date.now()
+          const end = Date.now()
+          await conn.sendMessage(
+            from,
+            { text: `🏓 Pong • ${end - start}ms\n💠 DAVE-MD-V1` },
+            { quoted: msg }
+          )
+          break
 
-        // Submenus
-        if (cmd === `${prefix}ownermenu`) {
-          await conn.sendMessage(from, { text: global.ownermenu(prefix) }, { quoted: msg });
-        }
-        if (cmd === `${prefix}groupmenu`) {
-          await conn.sendMessage(from, { text: global.groupmenu(prefix) }, { quoted: msg });
-        }
-        if (cmd === `${prefix}downloadmenu`) {
-          await conn.sendMessage(from, { text: global.downloadmenu(prefix) }, { quoted: msg });
-        }
-        if (cmd === `${prefix}animemenu`) {
-          await conn.sendMessage(from, { text: global.animemenu(prefix) }, { quoted: msg });
-        }
-        if (cmd === `${prefix}othermenu`) {
-          await conn.sendMessage(from, { text: global.othermenu(prefix) }, { quoted: msg });
-        }
+        case 'ownermenu':
+          await conn.sendMessage(from, { text: global.ownermenu(prefix) }, { quoted: msg })
+          break
+
+        case 'groupmenu':
+          await conn.sendMessage(from, { text: global.groupmenu(prefix) }, { quoted: msg })
+          break
+
+        case 'downloadmenu':
+          await conn.sendMessage(from, { text: global.downloadmenu(prefix) }, { quoted: msg })
+          break
+
+        case 'animemenu':
+          await conn.sendMessage(from, { text: global.animemenu(prefix) }, { quoted: msg })
+          break
+
+        case 'othermenu':
+          await conn.sendMessage(from, { text: global.othermenu(prefix) }, { quoted: msg })
+          break
+
+        default:
+          // Unhandled
+          break
       }
     }
   } catch (err) {
-    console.error(chalk.red('[ERROR IN MESSAGE HANDLER]'), err);
+    console.error(chalk.red('[ERROR IN MESSAGE HANDLER]'), err)
   }
 }
 
-// Startup logic
+// Startup handler
 async function Solving(conn, store) {
-  console.log(chalk.green('[DAVE-MD] Bot started and monitoring messages...'));
+  console.log(chalk.green('[DAVE-MD] Bot is up and ready.'))
 }
 
-// Export all
 module.exports = {
   GroupUpdate,
   GroupParticipantsUpdate,
   MessagesUpsert,
   Solving
-};
+}
 
-//════════════════════════════════════════════════════════════════════════════//
-// 🌟 SUBMENU TEMPLATES — Dave-Md-V1
-//════════════════════════════════════════════════════════════════════════════//
+//══════════════════════════════════════════════════════════════════════════════════════//
+//                              💠 DAVE-MD-V1 - GLOBAL MENUS 💠                            //
+//══════════════════════════════════════════════════════════════════════════════════════//
+
 global.ownermenu = (prefix) => `
-┏━━❖ ᴏᴡɴᴇʀ ᴍᴇɴᴜ ❖━━┓
-┃⿻ ${prefix}setppbot
-┃⿻ ${prefix}setprefix
-┃⿻ ${prefix}shutdown
-┃⿻ ${prefix}bc
-┃⿻ ${prefix}join
-┗━━━━━━━━━━━━━━┛`;
+╭─❖『 💠 DAVE-MD-V1 💠 』❖─╮
+│ *Forwarded Many Times*
+│ _“Your Ultimate WhatsApp Assistant”_
+╰──────────────────────────╯
+
+╭──❖ OWNER MENU ❖
+│ ⿻ ${prefix}setppbot
+│ ⿻ ${prefix}setprefix
+│ ⿻ ${prefix}shutdown
+│ ⿻ ${prefix}bc
+│ ⿻ ${prefix}join
+╰─────────────────╯`
 
 global.groupmenu = (prefix) => `
-┏━━❖ ɢʀᴏᴜᴘ ᴍᴇɴᴜ ❖━━┓
-┃⿻ ${prefix}add
-┃⿻ ${prefix}kick
-┃⿻ ${prefix}promote
-┃⿻ ${prefix}demote
-┃⿻ ${prefix}setname
-┃⿻ ${prefix}setdesc
-┗━━━━━━━━━━━━━━┛`;
+╭──❖ GROUP MENU ❖
+│ ⿻ ${prefix}add
+│ ⿻ ${prefix}kick
+│ ⿻ ${prefix}promote
+│ ⿻ ${prefix}demote
+│ ⿻ ${prefix}setname
+│ ⿻ ${prefix}setdesc
+╰─────────────────╯`
 
 global.downloadmenu = (prefix) => `
-┏━━❖ ᴅᴏᴡɴʟᴏᴀᴅ ᴍᴇɴᴜ ❖━━┓
-┃⿻ ${prefix}ytmp3
-┃⿻ ${prefix}ytmp4
-┃⿻ ${prefix}tiktok
-┃⿻ ${prefix}instagram
-┗━━━━━━━━━━━━━━┛`;
+╭──❖ DOWNLOAD MENU ❖
+│ ⿻ ${prefix}ytmp3
+│ ⿻ ${prefix}ytmp4
+│ ⿻ ${prefix}tiktok
+│ ⿻ ${prefix}instagram
+╰─────────────────╯`
 
 global.animemenu = (prefix) => `
-┏━━❖ ᴀɴɪᴍᴇ ᴍᴇɴᴜ ❖━━┓
-┃⿻ ${prefix}anime
-┃⿻ ${prefix}manga
-┃⿻ ${prefix}neko
-┃⿻ ${prefix}waifu
-┗━━━━━━━━━━━━━━┛`;
+╭──❖ ANIME MENU ❖
+│ ⿻ ${prefix}anime
+│ ⿻ ${prefix}manga
+│ ⿻ ${prefix}neko
+│ ⿻ ${prefix}waifu
+╰─────────────────╯`
 
 global.othermenu = (prefix) => `
-┏━━❖ ᴏᴛʜᴇʀ ᴍᴇɴᴜ ❖━━┓
-┃⿻ ${prefix}ping
-┃⿻ ${prefix}owner
-┃⿻ ${prefix}report
-┃⿻ ${prefix}runtime
-┗━━━━━━━━━━━━━━┛`;
+╭──❖ OTHER MENU ❖
+│ ⿻ ${prefix}ping
+│ ⿻ ${prefix}owner
+│ ⿻ ${prefix}report
+│ ⿻ ${prefix}runtime
+╰─────────────────╯
+
+🔗 *Powered by: DAVE-MD-V1*
+📞 Owner: wa.me/254104260236
+🌐 GitHub: github.com/gifteddaves`
